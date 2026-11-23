@@ -1,0 +1,217 @@
+{
+  "ticker": "2330.TW",
+  "period": "2016-11-24..2026-11-23",
+  "split": {
+    "train": "2016-11-24..2023-11-16",
+    "test": "2023-11-17..2026-11-23",
+    "n_train": 1698,
+    "n_test": 729
+  },
+  "quality": {
+    "clean": {
+      "rows_raw": 2432,
+      "missing_close": 3,
+      "nonpositive_close": 0,
+      "duplicate_dates": 0,
+      "rows_clean": 2429
+    },
+    "twse_crosscheck": {
+      "window": "2024-12-02..2026-11-23",
+      "yahoo_rows_in_window": 479,
+      "twse_rows": 479,
+      "matched_dates": 478,
+      "only_yahoo": 1,
+      "only_twse": 1,
+      "price_match_rate": 1.0,
+      "max_abs_rel_diff": 0.0,
+      "tolerance": 0.005,
+      "only_yahoo_dates": [
+        "2026-10-23"
+      ],
+      "only_twse_dates": [
+        "2025-08-01"
+      ],
+      "dropped_non_trading_yahoo_bars": 1
+    },
+    "vix_attach": {
+      "rows_in": 2427,
+      "rows_out": 2427,
+      "unlabelled": 0,
+      "max_gap_days": 4
+    }
+  },
+  "moments": {
+    "full": {
+      "n": 2427,
+      "mean": 0.0011419291481282268,
+      "sd": 0.01767141247341955,
+      "skew": 0.264233207650783,
+      "excess_kurtosis": 3.6626413490644865,
+      "jb": 1384.8278361023367,
+      "jb_p": 1.9429257198383384e-301,
+      "min": -0.0997876857749469,
+      "max": 0.09977324263038545
+    },
+    "train": {
+      "n": 1698,
+      "mean": 0.0008025142771272418,
+      "sd": 0.016027967786085125,
+      "skew": 0.3484568172044297,
+      "excess_kurtosis": 3.3332697590709044,
+      "jb": 820.4435949647311,
+      "jb_p": 6.96525461954e-179,
+      "min": -0.08333333333333337,
+      "max": 0.09974093264248696
+    },
+    "test": {
+      "n": 729,
+      "mean": 0.0019325004114473937,
+      "sd": 0.020997942189871766,
+      "skew": 0.1165428507674239,
+      "excess_kurtosis": 3.1276431102332767,
+      "jb": 298.78309121595896,
+      "jb_p": 1.3184877509575654e-65,
+      "min": -0.0997876857749469,
+      "max": 0.09977324263038545
+    }
+  },
+  "shapiro_train": {
+    "W": 0.9689363010849582,
+    "p": 1.1438876868146866e-18,
+    "n_used": 1698
+  },
+  "ljung_box_sq_train": {
+    "lags": 10,
+    "Q": 159.70453193332182,
+    "p": 3.728757621454755e-29
+  },
+  "t_fit_train": {
+    "df": 5.247613367828684,
+    "loc": 0.0005804999913209205,
+    "scale": 0.012591059923510048
+  },
+  "exceedance": [
+    {
+      "k": 1,
+      "band_low": -0.015225453508957883,
+      "band_high": 0.016830482063212367,
+      "p_normal": 0.31731050786291415,
+      "p_t": 0.256569709535161,
+      "p_hist_train": 0.2620730270906949,
+      "test_hits": 269,
+      "test_n": 729,
+      "p_observed": 0.36899862825788754,
+      "ci95_low": 0.33474277936258123,
+      "ci95_high": 0.404627861174921,
+      "ratio_obs_to_normal": 1.1628944491724929,
+      "binom_p_vs_normal": 0.0032070645781285853,
+      "binom_p_vs_t": 2.1713392520727193e-11,
+      "binom_p_vs_hist": 2.803077696597979e-10
+    },
+    {
+      "k": 2,
+      "band_low": -0.03125342129504301,
+      "band_high": 0.03285844984929749,
+      "p_normal": 0.04550026389635839,
+      "p_t": 0.04930404712901618,
+      "p_hist_train": 0.043580683156654886,
+      "test_hits": 76,
+      "test_n": 729,
+      "p_observed": 0.10425240054869685,
+      "ci95_low": 0.08410503942061255,
+      "ci95_high": 0.12854867571100392,
+      "ratio_obs_to_normal": 2.291248261464274,
+      "binom_p_vs_normal": 4.978937727210525e-11,
+      "binom_p_vs_t": 1.7223028067622619e-09,
+      "binom_p_vs_hist": 5.1835828443089574e-12
+    },
+    {
+      "k": 3,
+      "band_low": -0.04728138908112813,
+      "band_high": 0.048886417635382616,
+      "p_normal": 0.0026997960632601866,
+      "p_t": 0.011308731285338396,
+      "p_hist_train": 0.01060070671378092,
+      "test_hits": 23,
+      "test_n": 729,
+      "p_observed": 0.03155006858710562,
+      "ci95_low": 0.021114024779855307,
+      "ci95_high": 0.04689721860817595,
+      "ratio_obs_to_normal": 11.686093263284034,
+      "binom_p_vs_normal": 2.5442005037883168e-17,
+      "binom_p_vs_t": 1.5604482824022217e-05,
+      "binom_p_vs_hist": 5.674331244614233e-06
+    }
+  ],
+  "exceedance_rolling": [
+    {
+      "k": 1,
+      "window": 250,
+      "p_normal": 0.31731050786291415,
+      "p_t_unitvar": 0.25710495858274324,
+      "test_hits": 196,
+      "test_n": 729,
+      "p_observed": 0.26886145404663925,
+      "ci95_low": 0.23795003537602002,
+      "ci95_high": 0.3021960686089969,
+      "ratio_obs_to_normal": 0.8473134276498462,
+      "binom_p_vs_normal": 0.004707326377261323,
+      "binom_p_vs_t": 0.47135649937651936
+    },
+    {
+      "k": 2,
+      "window": 250,
+      "p_normal": 0.04550026389635839,
+      "p_t_unitvar": 0.049514698819143485,
+      "test_hits": 53,
+      "test_n": 729,
+      "p_observed": 0.07270233196159122,
+      "ci95_low": 0.056010546198302605,
+      "ci95_high": 0.09387379440307876,
+      "ratio_obs_to_normal": 1.597844182336928,
+      "binom_p_vs_normal": 0.0009506247313253227,
+      "binom_p_vs_t": 0.006089019127253501
+    },
+    {
+      "k": 3,
+      "window": 250,
+      "p_normal": 0.0026997960632601866,
+      "p_t_unitvar": 0.011371588440071311,
+      "test_hits": 14,
+      "test_n": 729,
+      "p_observed": 0.019204389574759947,
+      "ci95_low": 0.011473540397243801,
+      "ci95_high": 0.03197577382678245,
+      "ratio_obs_to_normal": 7.113274160259848,
+      "binom_p_vs_normal": 2.19684469273684e-08,
+      "binom_p_vs_t": 0.0532725007042079
+    }
+  ],
+  "oos_loglik": {
+    "normal": 2.355016930163862,
+    "t": 2.45523514664556,
+    "t_minus_normal": 0.10021821648169826
+  },
+  "vix_regime_full_k2": {
+    "k": 2,
+    "vix_high_cut": 24.466,
+    "table": {
+      "extreme_high": 49,
+      "normal_high": 343,
+      "extreme_low": 101,
+      "normal_low": 1934
+    },
+    "p_extreme_given_high": 0.125,
+    "p_extreme_given_low": 0.04963144963144963,
+    "risk_ratio": 2.5185643564356437,
+    "odds_ratio": 2.7355021216407356,
+    "fisher_p": 2.333263134163272e-07
+  },
+  "figures": [
+    "results/figures/fig1_hist_2330_TW.png",
+    "results/figures/fig2_qq_2330_TW.png",
+    "results/figures/fig3_exceed_2330_TW.png",
+    "results/figures/fig4_crosscheck_2330_TW.png",
+    "results/figures/fig5_rolling_2330_TW.png"
+  ]
+}

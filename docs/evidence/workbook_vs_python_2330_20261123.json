@@ -1,0 +1,32 @@
+{
+  "run_date": "2026-11-23",
+  "ticker": "2330 (workbook resolved to 2330.TW)",
+  "period": 250,
+  "freq": "D",
+  "workbook_cells": {
+    "status": "",
+    "c8": "daily  .  last 250 sessions  .  2025-11-12 to 2026-11-23  .  SD 2.14%  .  15 of 250 past 2 SD  .  last +1.50%",
+    "m10": "+/-2.14%",
+    "m11": "+/-4.28%",
+    "m12": "+/-6.41%",
+    "p10": 0.7634615384615384,
+    "p11": 0.95,
+    "p12": 0.9884615384615385,
+    "last_price": 2030
+  },
+  "python_replica": {
+    "sd_window": 0.021384084869217564,
+    "n_beyond_2sd": 15,
+    "inside": {
+      "1": 0.7634615384615384,
+      "2": 0.95,
+      "3": 0.9884615384615385
+    }
+  },
+  "comparison": {
+    "SD": "2.14% vs 2.1384% -> match at displayed precision",
+    "beyond_2sd": "15 vs 15",
+    "inside_1_2_3": "exact float match"
+  },
+  "how": "copy of Portfolio/Ticker Volatility.xlsm opened headless via Excel COM (original untouched); inputs B2/B3/E3 set, RunVT executed; cells read back"
+}

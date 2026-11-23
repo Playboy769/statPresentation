@@ -1,0 +1,23 @@
+{
+  "fred_VIXCLS": {
+    "file": "data/raw/fred_VIXCLS.csv",
+    "url": "https://fred.stlouisfed.org/graph/fredgraph.csv?id=VIXCLS",
+    "downloaded_utc": "2026-11-23T11:59:28+00:00",
+    "sha256": "5fdb14015c8fee857f1aae7ea54d799fe8e2eebc1b4dcab047cc7ac70e3a78a0",
+    "rows": 9623
+  },
+  "yahoo_2330.TW": {
+    "file": "data/raw/yahoo_2330_TW.json",
+    "url": "https://query1.finance.yahoo.com/v8/finance/chart/2330.TW?range=10y&interval=1d&events=splits",
+    "downloaded_utc": "2026-11-23T12:03:46+00:00",
+    "sha256": "591cfe628cbecda670facd50ed180cad82ddecf40f6e4b879a9cc0a2cb64bb71",
+    "rows": 2432
+  },
+  "twse_2330": {
+    "file": "data/raw/twse_2330.json",
+    "url": "https://www.twse.com.tw/exchangeReport/STOCK_DAY",
+    "downloaded_utc": "2026-11-23T12:00:48+00:00",
+    "sha256": "9a3c35f9259f5bb4ae9e41e0f6d726a308568d5e0ff6dc129359cf17459cdb1c",
+    "rows": 479
+  }
+}

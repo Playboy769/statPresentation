@@ -1,0 +1,12 @@
+{
+  "input": "skilltest_duplicates.csv",
+  "gates": {
+    "rows": 2432,
+    "bad_dates": 0,
+    "missing_close": 0,
+    "nonpositive_close": 0,
+    "duplicate_dates": 3
+  },
+  "flags": [],
+  "stop": "3 duplicate dates - would create spurious returns and inflate any date join; fix the source, do not auto-drop"
+}

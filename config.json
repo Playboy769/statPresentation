@@ -1,0 +1,16 @@
+{
+  "_comment": "Tickers are deliberately configurable. The smoke-test run uses 2330.TW only; the final ticker list is a team decision (docs/decisions.md D-05).",
+  "tickers": ["2330.TW"],
+  "yahoo_range": "10y",
+  "price_field": "close",
+  "return_type": "simple",
+  "train_fraction": 0.70,
+  "k_sigma": [1, 2, 3],
+  "twse_crosscheck_months": 24,
+  "twse_sleep_seconds": 3.0,
+  "fred_series": ["VIXCLS"],
+  "vix_high_quantile": 0.80,
+  "rolling_window": 250,
+  "price_match_tolerance": 0.005,
+  "seed": 20261123
+}

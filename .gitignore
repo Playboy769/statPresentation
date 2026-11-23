@@ -1,0 +1,16 @@
+# Raw downloads are not redistributed (Yahoo terms); fetch with python/run_all.py.
+# Hashes and row counts are recorded in data/manifest.json instead.
+data/raw/*
+!data/raw/.gitkeep
+data/processed/*
+!data/processed/.gitkeep
+
+.venv/
+__pycache__/
+*.pyc
+.Rhistory
+.RData
+.Rproj.user/
+renv/library/
+.env
+*.log
