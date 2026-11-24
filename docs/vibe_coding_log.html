@@ -1,0 +1,68 @@
+<!doctype html>
+<html lang="zh-Hant">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Vibe Coding 紀錄</title>
+<style>
+:root{--bg:#fff;--fg:#1a1a1a;--muted:#5c5c5c;--line:#e3e3e3;--soft:#f6f6f4;--accent:#c86400}
+@media (prefers-color-scheme:dark){:root{--bg:#141414;--fg:#e8e8e8;--muted:#a0a0a0;--line:#2e2e2e;--soft:#1d1d1d;--accent:#ff9a3c}}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--fg);font:16px/1.75 "Noto Sans TC","Microsoft JhengHei","PingFang TC",system-ui,sans-serif}
+.wrap{max-width:960px;margin:0 auto;padding:0 16px 48px}
+.top{border-bottom:1px solid var(--line);padding:14px 0;margin-bottom:8px;font-size:14px;color:var(--muted);display:flex;gap:12px;flex-wrap:wrap}
+a{color:var(--accent)}
+h1{font-size:28px;line-height:1.35;margin:24px 0 12px}
+h2{font-size:22px;margin:32px 0 10px;padding-bottom:4px;border-bottom:1px solid var(--line)}
+h3{font-size:18px;margin:24px 0 8px}
+h4,h5,h6{font-size:16px;margin:18px 0 6px}
+p{margin:0 0 12px}
+ul,ol{padding-left:24px;margin:0 0 12px}
+li{margin-bottom:4px}
+code{background:var(--soft);padding:1px 5px;border-radius:3px;font-size:14px;font-family:Consolas,"Courier New",monospace}
+pre{background:var(--soft);padding:12px 14px;border-radius:4px;overflow-x:auto}
+pre code{padding:0;background:none}
+blockquote{margin:0 0 12px;padding:8px 14px;border-left:4px solid var(--accent);background:var(--soft);color:var(--muted)}
+blockquote p:last-child{margin-bottom:0}
+.tbl{overflow-x:auto;margin:0 0 14px}
+table{border-collapse:collapse;font-size:15px;width:100%}
+th,td{border:1px solid var(--line);padding:6px 9px;text-align:left;vertical-align:top}
+th{background:var(--soft)}
+hr{border:0;border-top:1px solid var(--line);margin:24px 0}
+.meta{font-size:14px;color:var(--muted)}
+</style>
+</head>
+<body>
+<div class="wrap">
+<div class="top"><a href="../index.htm">&larr; 回專題首頁</a><span>原始檔：<a href="vibe_coding_log.md">docs/vibe_coding_log.md</a></span></div>
+<h1>Vibe Coding 紀錄</h1>
+<p>以自然語言迭代原型。每一版記錄：需求 → AI 生成版本 → 人工／後續修改 → 測試前後差異。</p>
+<h2>V1　自然語言需求 → 第一版管線</h2>
+<ul><li><strong>需求（自然語言）</strong>：「用 Ticker Volatility 的算法分析股票報酬是否常態、±kσ 會低估多少， Python 主分析、R 檢核，資料要多來源。」</li><li><strong>生成</strong>：<code>fetch.py</code>（三來源）、<code>integrate.py</code>（清理／交叉驗證／貼 VIX／切分）、 <code>analyze.py</code>（動差、JB、Shapiro、Ljung-Box、t 擬合、超越率表、Wilson CI）、<code>run_all.py</code>（4 張圖）。</li><li><strong>刻意對齊活頁簿的設計決定</strong>：簡單報酬（非對數）、SD 用 n−1、用 <code>close</code> 而非 <code>adjclose</code> ——皆由讀 <code>VT/modVT.bas</code> 原始碼確認（<code>DailyRets</code>、<code>SdS</code>、<code>FetchYahooSeries</code>）。</li><li><strong>測試</strong>：線上跑 2330.TW，1 分 42 秒完成（TWSE 24 次請求 × 3 秒占大部分）。</li></ul>
+<h2>V2　重構：抓取與解析拆開</h2>
+<ul><li><strong>原因</strong>：要能離線重跑（<code>--offline</code>），不必每次重抓。</li><li><strong>修改</strong>：<code>fetch.py</code> 拆成 <code>parse_*</code>（純解析）與 <code>fetch_*</code>（下載＋寫 raw＋記 manifest）。</li><li><strong>前後差異</strong>：離線模式結果與線上完全相同；重跑時間由 ~100 秒降到數秒。</li></ul>
+<h2>V3　看到結果後擴充：滾動 SD</h2>
+<ul><li><strong>觸發</strong>：V1 結果顯示測試期 SD 2.10% vs 訓練期 1.60%，三種模型全部低估。</li><li><strong>自然語言需求</strong>：「把尾巴形狀和波動水準分開看。」</li><li><strong>生成</strong>：<code>rolling_exceedance()</code>、<code>config.json</code> 加 <code>rolling_window: 250</code>、圖 5。</li><li><strong>前後差異</strong>：3σ 低估倍數 11.7 →（滾動）約 7.1；t 在 1σ 落入實際 CI。</li><li><strong>標示</strong>：事後新增（D-07），results.md 明確寫出。</li></ul>
+<h2>V4　R 獨立檢核</h2>
+<ul><li><strong>生成</strong>：<code>r/verify.R</code>，只共用 returns CSV，其餘全部用 R 自己的函式重算。</li><li><strong>結果</strong>：26/26 通過（t 擬合 df 差 0.7%，因兩邊最佳化器不同，容差 5%）。</li></ul>
+<h2>V5　單元測試：3 個失敗 → 修正</h2>
+<ul><li>第一次執行：1 ERROR＋2 FAIL（全是測試本身的錯，見 debug_log D-01..D-03）。</li><li>修正後 14/14 通過。</li></ul>
+<h2>V6　交叉驗證抓到資料錯誤 → 修正清理規則</h2>
+<ul><li>新增 <code>drop_non_trading()</code>（debug_log D-04）。</li><li><strong>前後差異</strong>：訓練期 n 1699 → 1698、SD 1.6024% → 1.6028%；結論不變；R 26/26、測試 14/14 維持通過。</li></ul>
+<h2>V7　活頁簿對帳</h2>
+<ul><li><strong>生成</strong>：<code>workbook_replica.py</code>（Python 版活頁簿 SD 區塊）＋<code>run_workbook_check.ps1</code>（Excel COM 執行活頁簿副本）。</li><li><strong>人工修改</strong>：COM 寫入數字失敗（D-05），改寫字串。</li><li><strong>結果</strong>：與活頁簿完全一致（docs/workbook_check.md）。</li></ul>
+<h2>V8　skill</h2>
+<ul><li><code>return-distribution-check</code>：正常資料 1 次、邊界資料 2 種（重複日期、太短），皆依規格停止（exit 2）。</li></ul>
+<h2>V9　標的改 SPY、三視窗、FRED S&amp;P 500 交叉驗證（2026-11-24）</h2>
+<ul><li><strong>需求</strong>：「全部都以 SPY 進行基準分析」「分別做 200、500、2000 trading day 分析」「第二來源用 FRED 的 S&amp;P 500 指數」。</li><li><strong>生成</strong>：<code>integrate.crosscheck_index()</code>、<code>last_n()</code>；<code>analyze.window_stats()</code>；<code>run_all.py</code> 三視窗與 fig6；<code>r/verify.R</code> 第 7 段；3 個新單元測試。</li><li><strong>查核</strong>：AI 先查 VBA 確認日線上限 MAXN = 2600 根，2,000 日在上限內（使用者記得是 1000 天上限，那是舊版 RR4 的回看期）。</li><li><strong>結果</strong>：R 41/41、單元測試 17/17。交叉驗證發現除息日差距（D-06）。</li></ul>
+<h2>V10　對帳失敗 → 改用 adjclose</h2>
+<ul><li>活頁簿 SPY 對帳 ±1 SD 內差 1–5 天；重讀 VBA 發現讀 adjclose（D-07）。改 <code>price_field</code> 後三視窗完全一致，R、單元測試重跑仍全過。</li></ul>
+<h2>V11　書面報告</h2>
+<ul><li>依使用者規則（標楷體／Times New Roman 12 號黑字、全國中學小論文格式、留截圖位置、APA 7）以 docx-js 產生 <code>report/Report.docx</code>，數字逐一對 <code>summary_SPY.json</code> 核對，Word 轉 PDF 逐頁檢查版面。</li></ul>
+<h2>V12　報告改為雙主軸、尾部波動佔比</h2>
+<ul><li><strong>需求</strong>：「docx 的主軸是 Ticker Volatility Excel 產品不是這項研究，為雙主軸」「英文改 Times New Roman」；方法段去人名、表格精簡、圖改中文且不用黑色長條。</li><li><strong>生成</strong>：<code>analyze.window_stats()</code> 新增 <code>var_share</code>（極端日佔總波動）與 <code>cum_return_excl</code>；<code>r/verify.R</code> 新增三視窗 <code>k3_var_share</code> 比對；2 個新單元測試（T24–T25）；<code>product/</code> 收錄活頁簿原始碼與建置腳本；報告重寫為「產品＋研究」雙主軸。</li><li><strong>查核</strong>：常態理論值 2.93% 由公式推導、模擬驗證；Word 轉 PDF 後以 pdffonts 確認英文為 Times New Roman、中文為標楷體（目錄頁原本被 Word 套成主題字型，已在轉檔腳本強制改回）。</li><li><strong>結果</strong>：R 44/44、單元測試 19/19；正文 11 頁（第 5–15 頁）。</li></ul>
+<h2>V13　報告加重產品篇幅</h2>
+<ul><li><strong>需求</strong>：「主軸還是都放在研究上，我想要多一點篇幅是針對產品的部分，給點創新，強調一般人也能透過簡單的統計知識理解有價證券在二級市場的波動」。</li><li><strong>決定（使用者選）</strong>：研究細節移附錄（分布圖、樣本外長條圖）；創新主打連漲連跌（STREAK LENGTH）；加入編號標註的活頁簿截圖與六步讀法；副標題改「讓一般投資人用簡單統計看懂二級市場波動」；研究定位為產品使用說明書；摘要改為產品優先。</li><li><strong>查核</strong>：連漲連跌數字由活頁簿副本實際執行讀出，再以 Python 從同一份報酬資料重算，逐格一致；並與擲銅板預期 0.5505^(n−1) 比對（連漲 3 天 31.0% 對 30.3%）。</li><li><strong>結果</strong>：正文仍為 12 頁（第 5–16 頁）。</li></ul>
+</div>
+</body>
+</html>

@@ -63,6 +63,8 @@
 | 4 skill | `python skills/return-distribution-check/make_test_inputs.py` 後依 [SKILL.md](skills/return-distribution-check/SKILL.md) 執行 | `results/skill/` | 數秒 |
 | 5 活頁簿對帳（選用） | `powershell -STA -File python/run_workbook_check.ps1 -Book <活頁簿副本.xlsm> -Ticker SPY -Period 2000 -Out out.json` | JSON | ~30 秒 |
 
+成果網站：`index.htm` 直接開啟即可；`docs/` 等文件的 `.html` 版由 `python python/md_to_html.py` 從同名 `.md` 產生，改了 `.md` 要重跑。
+
 換標的：改 `config.json` 的 `tickers` 或加 `--tickers <代號>`（台股上市 `.TW` 會自動做 TWSE 交叉驗證；`index_crosscheck` 指定對照指數）。
 
 ## 最小示例與預期輸出

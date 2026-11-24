@@ -1,0 +1,49 @@
+<!doctype html>
+<html lang="zh-Hant">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>測試計畫與結果</title>
+<style>
+:root{--bg:#fff;--fg:#1a1a1a;--muted:#5c5c5c;--line:#e3e3e3;--soft:#f6f6f4;--accent:#c86400}
+@media (prefers-color-scheme:dark){:root{--bg:#141414;--fg:#e8e8e8;--muted:#a0a0a0;--line:#2e2e2e;--soft:#1d1d1d;--accent:#ff9a3c}}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--fg);font:16px/1.75 "Noto Sans TC","Microsoft JhengHei","PingFang TC",system-ui,sans-serif}
+.wrap{max-width:960px;margin:0 auto;padding:0 16px 48px}
+.top{border-bottom:1px solid var(--line);padding:14px 0;margin-bottom:8px;font-size:14px;color:var(--muted);display:flex;gap:12px;flex-wrap:wrap}
+a{color:var(--accent)}
+h1{font-size:28px;line-height:1.35;margin:24px 0 12px}
+h2{font-size:22px;margin:32px 0 10px;padding-bottom:4px;border-bottom:1px solid var(--line)}
+h3{font-size:18px;margin:24px 0 8px}
+h4,h5,h6{font-size:16px;margin:18px 0 6px}
+p{margin:0 0 12px}
+ul,ol{padding-left:24px;margin:0 0 12px}
+li{margin-bottom:4px}
+code{background:var(--soft);padding:1px 5px;border-radius:3px;font-size:14px;font-family:Consolas,"Courier New",monospace}
+pre{background:var(--soft);padding:12px 14px;border-radius:4px;overflow-x:auto}
+pre code{padding:0;background:none}
+blockquote{margin:0 0 12px;padding:8px 14px;border-left:4px solid var(--accent);background:var(--soft);color:var(--muted)}
+blockquote p:last-child{margin-bottom:0}
+.tbl{overflow-x:auto;margin:0 0 14px}
+table{border-collapse:collapse;font-size:15px;width:100%}
+th,td{border:1px solid var(--line);padding:6px 9px;text-align:left;vertical-align:top}
+th{background:var(--soft)}
+hr{border:0;border-top:1px solid var(--line);margin:24px 0}
+.meta{font-size:14px;color:var(--muted)}
+</style>
+</head>
+<body>
+<div class="wrap">
+<div class="top"><a href="../index.htm">&larr; 回專題首頁</a><span>原始檔：<a href="test_plan.md">docs/test_plan.md</a></span></div>
+<h1>測試計畫與結果</h1>
+<p>預期值一律由定義、理論、教科書或獨立實作決定，不採用被測程式自己的輸出。執行日期 2026-11-23（T01–T19）、2026-11-24（T15–T16 以 SPY 重跑、T20–T23 新增），Windows 11、Python 3.14.4、R 4.6.1。</p>
+<div class="tbl"><table><thead><tr><th>編號</th><th>層次</th><th>輸入與預期</th><th>實際結果與證據</th><th>判定</th></tr></thead><tbody><tr><td>T01</td><td>計算</td><td>8 點手算資料：偏態 0、峰態＝m4/m2²−3、SD 用 n−1</td><td><code>test_hand_example</code></td><td>通過</td></tr><tr><td>T02</td><td>統計</td><td>20 萬筆模擬常態：偏態、峰態近 0，JB 不拒絕</td><td><code>test_large_normal_sample_is_close_to_theory</code></td><td>通過</td></tr><tr><td>T03</td><td>邊界</td><td>少於 8 筆、零變異 → 拋 ValueError</td><td><code>test_boundary_too_few_and_constant</code></td><td>通過</td></tr><tr><td>T04</td><td>計算</td><td>Wilson 10/100 → (0.0552, 0.1744)（教科書值）</td><td><code>test_wilson_known_value</code></td><td>通過</td></tr><tr><td>T05</td><td>邊界</td><td>Wilson 0/n、n/n、0/0</td><td><code>test_wilson_edges</code></td><td>第一次失敗（D-02），修正後通過</td></tr><tr><td>T06</td><td>統計</td><td>真的是常態時，常態模型不可被拒絕（固定種子）</td><td><code>test_exceedance_on_simulated_normal_matches_normal</code></td><td>第一次失敗（D-03），修正判準後通過</td></tr><tr><td>T07</td><td>統計</td><td>i.i.d. 不拒絕、分段波動必拒絕（Ljung-Box）</td><td><code>test_iid_not_rejected_and_garch_like_rejected</code></td><td>通過</td></tr><tr><td>T08</td><td>資料</td><td>重複日期保留後者、空值計數</td><td><code>test_duplicates_keep_last_and_drop_missing</code></td><td>第一次 ERROR（D-01），修正後通過</td></tr><tr><td>T09</td><td>邊界</td><td>少於 60 筆價格 → 停止</td><td><code>test_too_short_series_stops</code></td><td>通過</td></tr><tr><td>T10</td><td>資料</td><td>TWSE 重複日期 → 停止，不可讓合併列數膨脹</td><td><code>test_twse_duplicate_key_stops_instead_of_inflating</code></td><td>通過</td></tr><tr><td>T11</td><td>資料洩漏</td><td>VIX 只能貼前一日，不可貼當日</td><td><code>test_vix_is_strictly_previous_day</code></td><td>通過</td></tr><tr><td>T12</td><td>資料洩漏</td><td>切分依時間，訓練期全在測試期之前</td><td><code>test_split_is_chronological</code></td><td>通過</td></tr><tr><td>T13</td><td>計算</td><td>活頁簿複製版：手算 3 筆報酬的 SD</td><td><code>test_hand_series</code></td><td>通過</td></tr><tr><td>T14</td><td>計算</td><td>活頁簿樣本長度規則 max(520, PERIOD)</td><td><code>test_sample_is_520_when_period_smaller</code></td><td>通過</td></tr><tr><td>T15</td><td>獨立實作</td><td>R 重算動差、JB、Shapiro、Ljung-Box、t 擬合、超越次數、Wilson、二項檢定、滾動次數、三視窗峰態／W／次數／3σ 波動佔比</td><td><code>results/tables/r_check_SPY.csv</code> 44/44（2330 舊版 26/26）</td><td>通過</td></tr><tr><td>T16</td><td>系統</td><td>活頁簿副本實際執行 VBA vs Python 複製版（SPY PERIOD 200/500/2000）</td><td><code>docs/evidence/workbook_vs_python_SPY_20261124.json</code></td><td>close 版失敗（D-07），改 adjclose 後完全一致</td></tr><tr><td>T17</td><td>資料</td><td>Yahoo vs TWSE 收盤價（容差 0.5%）</td><td>478 天 100% 相同；發現 1 筆非交易日（D-04）</td><td>通過，並修正清理規則</td></tr><tr><td>T18</td><td>邊界</td><td>skill：重複日期、少於 250 筆 → exit 2、不輸出統計</td><td><code>results/skill/run2a_*</code>、<code>run2b_*</code></td><td>通過</td></tr><tr><td>T19</td><td>系統</td><td><code>--offline</code> 重跑結果與線上相同</td><td>同一份 raw 資料，線上與離線的超越率表逐位相同（V1 線上 vs V2 離線）</td><td>通過</td></tr><tr><td>T20</td><td>計算</td><td>除息手算例：ETF 100→99、股利 1、指數持平 → 差 −1%、加回股利後 0</td><td><code>test_ex_dividend_gap_is_explained_by_dividend</code></td><td>通過</td></tr><tr><td>T21</td><td>資料</td><td>一方休市不得產生跨兩日報酬</td><td><code>test_holiday_on_one_side_does_not_create_two_day_return</code></td><td>通過</td></tr><tr><td>T22</td><td>計算</td><td><code>last_n</code> 取最後 n 筆、n 為 None 或超過長度時回傳全部</td><td><code>test_last_n</code></td><td>通過</td></tr><tr><td>T23</td><td>資料</td><td>SPY × FRED S&amp;P 500 指數報酬</td><td>2,510 日、相關 0.9973；除息日以股利解釋，1 筆未解釋（D-06）</td><td>通過（附限制）</td></tr><tr><td>T24</td><td>統計</td><td>40 萬筆模擬常態：3σ 外佔總波動 ≈ 理論值 2(3φ(3)+1−Φ(3)) = 2.93%</td><td><code>test_normal_data_gives_theoretical_share</code></td><td>通過</td></tr><tr><td>T25</td><td>計算</td><td>99 個 0 加 1 個 1：極端日佔比等於手算 (x−μ)² 比例</td><td><code>TestTailVarianceShare.test_hand_example</code></td><td>通過</td></tr></tbody></table></div>
+<h2>執行方式</h2>
+<pre><code>python -m unittest discover -s python/tests -v      # T01–T14、T20–T22、T24–T25（19 項）
+Rscript r/verify.R SPY                              # T15（需先跑 run_all.py）
+powershell -STA -File python/run_workbook_check.ps1 -Book &lt;活頁簿副本&gt; -Ticker SPY -Period 2000 -Out out.json   # T16（另跑 200、500）</code></pre>
+<h2>尚未做</h2>
+<ul><li>使用者測試（由非作者依 README 操作）——排在 12/17 前。</li><li>多個切點的穩健性檢查（只做了 70/30 一次）。</li></ul>
+</div>
+</body>
+</html>

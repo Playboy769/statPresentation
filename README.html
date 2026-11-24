@@ -1,0 +1,72 @@
+<!doctype html>
+<html lang="zh-Hant">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>statPresentation：股票日報酬是常態嗎？±kσ 會低估多少極端波動？</title>
+<style>
+:root{--bg:#fff;--fg:#1a1a1a;--muted:#5c5c5c;--line:#e3e3e3;--soft:#f6f6f4;--accent:#c86400}
+@media (prefers-color-scheme:dark){:root{--bg:#141414;--fg:#e8e8e8;--muted:#a0a0a0;--line:#2e2e2e;--soft:#1d1d1d;--accent:#ff9a3c}}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--fg);font:16px/1.75 "Noto Sans TC","Microsoft JhengHei","PingFang TC",system-ui,sans-serif}
+.wrap{max-width:960px;margin:0 auto;padding:0 16px 48px}
+.top{border-bottom:1px solid var(--line);padding:14px 0;margin-bottom:8px;font-size:14px;color:var(--muted);display:flex;gap:12px;flex-wrap:wrap}
+a{color:var(--accent)}
+h1{font-size:28px;line-height:1.35;margin:24px 0 12px}
+h2{font-size:22px;margin:32px 0 10px;padding-bottom:4px;border-bottom:1px solid var(--line)}
+h3{font-size:18px;margin:24px 0 8px}
+h4,h5,h6{font-size:16px;margin:18px 0 6px}
+p{margin:0 0 12px}
+ul,ol{padding-left:24px;margin:0 0 12px}
+li{margin-bottom:4px}
+code{background:var(--soft);padding:1px 5px;border-radius:3px;font-size:14px;font-family:Consolas,"Courier New",monospace}
+pre{background:var(--soft);padding:12px 14px;border-radius:4px;overflow-x:auto}
+pre code{padding:0;background:none}
+blockquote{margin:0 0 12px;padding:8px 14px;border-left:4px solid var(--accent);background:var(--soft);color:var(--muted)}
+blockquote p:last-child{margin-bottom:0}
+.tbl{overflow-x:auto;margin:0 0 14px}
+table{border-collapse:collapse;font-size:15px;width:100%}
+th,td{border:1px solid var(--line);padding:6px 9px;text-align:left;vertical-align:top}
+th{background:var(--soft)}
+hr{border:0;border-top:1px solid var(--line);margin:24px 0}
+.meta{font-size:14px;color:var(--muted)}
+</style>
+</head>
+<body>
+<div class="wrap">
+<div class="top"><a href="index.htm">&larr; 回專題首頁</a><span>原始檔：<a href="README.md">README.md</a></span></div>
+<h1>statPresentation：股票日報酬是常態嗎？±kσ 會低估多少極端波動？</h1>
+<p>115-1 程式設計與統計軟體 分組期末專題（資料分析路線）。</p>
+<h2>專題問題</h2>
+<p><a href="docs/workbook_check.html">Ticker Volatility</a> 活頁簿會畫出 ±1/2/3 SD 區間。若把它讀成常態機率（68% / 95% / 99.7%），等於假設日報酬服從常態且彼此獨立。本專題回答：</p>
+<blockquote><p>股票日報酬是否服從常態分布？若否，用 ±kσ 判斷「極端波動」會低估多少機率？改用 Student-t 分布或歷史分位數能不能改善？（前 70% 期間估參數、後 30% 驗證）</p></blockquote>
+<p><strong>標的：SPY</strong>（<a href="docs/decisions.html">decisions.md</a> D-08），價格用 Yahoo 含息調整價 adjclose（與活頁簿相同）。主要發現：最近 200、500、2,000 個交易日三視窗皆拒絕常態；超出 3σ 的天數是常態預期的 5–6 倍，樣本外（2,000 日切 70/30）常態低估 3σ 極端日約 3.7 倍，t 分布與歷史頻率未被拒絕；前一日 VIX 偏高時 2σ 極端日比例 17.8% vs 1.3%。詳見 <a href="docs/results.html">docs/results.md</a>，書面報告 <a href="report/Report.docx">report/Report.docx</a>（PDF 同版）。</p>
+<p>本專題為<strong>雙主軸</strong>：（一）產品——Ticker Volatility 活頁簿本身，原始碼在 <a href="product/README.html">product/</a>，可用 <code>product/build.ps1</code> 從原始碼建出；（二）研究——檢驗活頁簿的 SD 區間能否當常態機率讀。超出 3σ 的極端日只佔約 1.5% 的交易日，卻貢獻 28–40% 的總波動（常態下約 2.9%）。2330.TW 為早期流程驗證，保留作測試紀錄。</p>
+<h2>成員與分工</h2>
+<div class="tbl"><table><thead><tr><th>成員</th><th>負責</th><th>審查</th></tr></thead><tbody><tr><td>＿＿</td><td>問題與統計設計</td><td>＿＿</td></tr><tr><td>＿＿</td><td>資料與程式實作</td><td>＿＿</td></tr><tr><td>＿＿</td><td>測試與 AI 協作</td><td>＿＿</td></tr><tr><td>＿＿</td><td>整合與溝通</td><td>＿＿</td></tr></tbody></table></div>
+<h2>資料來源與授權</h2>
+<div class="tbl"><table><thead><tr><th>資料</th><th>提供者</th><th>授權</th></tr></thead><tbody><tr><td>SPY 日收盤價（close、adjclose、配息）</td><td>Yahoo Finance chart API</td><td>不重新散布；repo 只附取得程式</td></tr><tr><td>S&amp;P 500 指數（SP500）</td><td>FRED（St. Louis Fed）</td><td>公開，引用標示來源</td></tr><tr><td>台股官方收盤價（僅 2330 測試用）</td><td>臺灣證券交易所 STOCK_DAY</td><td>政府開放資料，標示來源</td></tr><tr><td>VIXCLS</td><td>FRED（St. Louis Fed）／CBOE</td><td>公開，引用標示來源</td></tr></tbody></table></div>
+<p>欄位、整合方式與品質紀錄：<a href="docs/data_dictionary.html">docs/data_dictionary.md</a>。 <code>data/raw/</code> 不進 git；每次下載的時間、SHA-256 與列數寫在 <code>data/manifest.json</code>。</p>
+<h2>環境</h2>
+<ul><li>開發環境：Windows 11、Python 3.14.4、R 4.6.1（另需 R 內建的 MASS 與 jsonlite）。</li><li>Python： ``<code> python -m venv .venv .venv\Scripts\activate          # macOS/Linux: source .venv/bin/activate pip install -r requirements.txt </code>``</li><li>R：只用 base R＋MASS＋jsonlite，版本資訊在 <code>r/sessionInfo.txt</code>。尚未建立 <code>renv.lock</code>（見「已知問題」）。</li><li>活頁簿對帳（選用）：需 Windows＋Excel。腳本以 <code>AutomationSecurity = 1</code>（允許巨集）開啟活頁簿執行 <code>RunVT</code>，請只對自己信任的活頁簿<strong>副本</strong>使用。</li></ul>
+<h2>執行順序（從 repo 根目錄）</h2>
+<div class="tbl"><table><thead><tr><th>步驟</th><th>指令</th><th>產出</th><th>約略時間</th></tr></thead><tbody><tr><td>1 抓資料＋分析</td><td><code>python python/run_all.py</code></td><td><code>data/raw/</code>、<code>data/processed/</code>、<code>results/tables/</code>、<code>results/figures/</code></td><td>數十秒（台股代號另加 TWSE，每次請求間隔 3 秒）</td></tr><tr><td>1' 離線重跑</td><td><code>python python/run_all.py --offline</code></td><td>同上，用既有 raw</td><td>數秒</td></tr><tr><td>2 R 獨立檢核</td><td><code>Rscript r/verify.R SPY</code></td><td><code>results/tables/r_check_SPY.csv</code></td><td>數秒</td></tr><tr><td>3 單元測試</td><td><code>python -m unittest discover -s python/tests -v</code></td><td>19 項</td><td>數秒</td></tr><tr><td>4 skill</td><td><code>python skills/return-distribution-check/make_test_inputs.py</code> 後依 <a href="skills/return-distribution-check/SKILL.html">SKILL.md</a> 執行</td><td><code>results/skill/</code></td><td>數秒</td></tr><tr><td>5 活頁簿對帳（選用）</td><td><code>powershell -STA -File python/run_workbook_check.ps1 -Book &lt;活頁簿副本.xlsm&gt; -Ticker SPY -Period 2000 -Out out.json</code></td><td>JSON</td><td>~30 秒</td></tr></tbody></table></div>
+<p>成果網站：<code>index.htm</code> 直接開啟即可；<code>docs/</code> 等文件的 <code>.html</code> 版由 <code>python python/md_to_html.py</code> 從同名 <code>.md</code> 產生，改了 <code>.md</code> 要重跑。</p>
+<p>換標的：改 <code>config.json</code> 的 <code>tickers</code> 或加 <code>--tickers &lt;代號&gt;</code>（台股上市 <code>.TW</code> 會自動做 TWSE 交叉驗證；<code>index_crosscheck</code> 指定對照指數）。</p>
+<h2>最小示例與預期輸出</h2>
+<p><code>python python/run_all.py</code> 對 SPY 印出（2026-11-24 下載；資料每天變，數字會小幅移動）：</p>
+<pre><code>SPY: n=1400 sd=1.2836% skew=-0.52 exkurt=11.89 JB p=0
+  k=3: normal 0.0027  t 0.0162  hist 0.0157  observed 0.0100 [0.0046,0.0216]  x3.70
+  window 2000: sd=1.2240% exkurt=13.29 JB p=0 SW p=4.5e-37 beyond k: 1:394/634.6 2:90/91.0 3:30/5.4</code></pre>
+<p>驗收：<code>r/verify.R</code> 必須印出 <code>44 / 44 checks passed</code>（結束碼 0）；單元測試 <code>OK</code>。容差：動差相對誤差 1e-9、t 擬合 df 5%（兩語言最佳化器不同）、次數必須完全相同。</p>
+<h2>隨機性</h2>
+<p>只有單元測試用到亂數，種子固定（<code>20261123</code>、<code>1</code>、<code>7</code>）。主分析沒有模擬，結果是確定性的。</p>
+<h2>文件</h2>
+<div class="tbl"><table><thead><tr><th>文件</th><th>內容</th></tr></thead><tbody><tr><td><a href="docs/results.html">docs/results.md</a></td><td>分析結果、結論與限制</td></tr><tr><td><a href="docs/data_dictionary.html">docs/data_dictionary.md</a></td><td>資料來源、欄位、整合、品質紀錄</td></tr><tr><td><a href="docs/workbook_check.html">docs/workbook_check.md</a></td><td>與 Ticker Volatility 活頁簿逐格對帳</td></tr><tr><td><a href="docs/test_plan.html">docs/test_plan.md</a></td><td>測試 T01–T19 與結果</td></tr><tr><td><a href="docs/ai_workflow.html">docs/ai_workflow.md</a></td><td>AI agent workflow（規劃→審查→實作→測試→修正）與人工決策點</td></tr><tr><td><a href="docs/ai_disclosure.html">docs/ai_disclosure.md</a></td><td>AI 使用揭露、主要提示、查核</td></tr><tr><td><a href="docs/vibe_coding_log.html">docs/vibe_coding_log.md</a></td><td>自然語言迭代的版本紀錄</td></tr><tr><td><a href="docs/debug_log.html">docs/debug_log.md</a></td><td>實際發生的錯誤與修正 D-01..D-07</td></tr><tr><td><a href="docs/decisions.html">docs/decisions.md</a></td><td>決策紀錄與待追蹤</td></tr><tr><td><a href="skills/return-distribution-check/SKILL.html">skills/return-distribution-check/</a></td><td>可重用 AI skill 與兩次使用案例</td></tr></tbody></table></div>
+<h2>已知問題</h2>
+<ul><li>只有 SPY 一檔；結論不可外推到個股或其他市場。</li><li>SPY 與 S&amp;P 500 指數 2026-06-26 一筆 −0.68 pp 差距尚未解釋（debug_log D-06）。</li><li>R 尚未建立 <code>renv.lock</code>（本機未安裝 renv）；目前以 <code>r/sessionInfo.txt</code> 記錄版本。</li><li>（2330 測試）TWSE 交叉驗證只涵蓋最近 24 個月，更早期間的 Yahoo 非交易日陳舊列無法檢出（debug_log D-04）。</li><li>尚未由非作者依本 README 獨立重跑（排在 12/17 前）。</li></ul>
+<h2>授權</h2>
+<p>程式碼：待組員決定（建議 MIT）。文件與圖表：待定。第三方資料依各提供者條款，不隨 repo 散布。</p>
+</div>
+</body>
+</html>

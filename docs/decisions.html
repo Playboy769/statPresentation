@@ -1,0 +1,45 @@
+<!doctype html>
+<html lang="zh-Hant">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>決策紀錄（會議／非同步討論）</title>
+<style>
+:root{--bg:#fff;--fg:#1a1a1a;--muted:#5c5c5c;--line:#e3e3e3;--soft:#f6f6f4;--accent:#c86400}
+@media (prefers-color-scheme:dark){:root{--bg:#141414;--fg:#e8e8e8;--muted:#a0a0a0;--line:#2e2e2e;--soft:#1d1d1d;--accent:#ff9a3c}}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--fg);font:16px/1.75 "Noto Sans TC","Microsoft JhengHei","PingFang TC",system-ui,sans-serif}
+.wrap{max-width:960px;margin:0 auto;padding:0 16px 48px}
+.top{border-bottom:1px solid var(--line);padding:14px 0;margin-bottom:8px;font-size:14px;color:var(--muted);display:flex;gap:12px;flex-wrap:wrap}
+a{color:var(--accent)}
+h1{font-size:28px;line-height:1.35;margin:24px 0 12px}
+h2{font-size:22px;margin:32px 0 10px;padding-bottom:4px;border-bottom:1px solid var(--line)}
+h3{font-size:18px;margin:24px 0 8px}
+h4,h5,h6{font-size:16px;margin:18px 0 6px}
+p{margin:0 0 12px}
+ul,ol{padding-left:24px;margin:0 0 12px}
+li{margin-bottom:4px}
+code{background:var(--soft);padding:1px 5px;border-radius:3px;font-size:14px;font-family:Consolas,"Courier New",monospace}
+pre{background:var(--soft);padding:12px 14px;border-radius:4px;overflow-x:auto}
+pre code{padding:0;background:none}
+blockquote{margin:0 0 12px;padding:8px 14px;border-left:4px solid var(--accent);background:var(--soft);color:var(--muted)}
+blockquote p:last-child{margin-bottom:0}
+.tbl{overflow-x:auto;margin:0 0 14px}
+table{border-collapse:collapse;font-size:15px;width:100%}
+th,td{border:1px solid var(--line);padding:6px 9px;text-align:left;vertical-align:top}
+th{background:var(--soft)}
+hr{border:0;border-top:1px solid var(--line);margin:24px 0}
+.meta{font-size:14px;color:var(--muted)}
+</style>
+</head>
+<body>
+<div class="wrap">
+<div class="top"><a href="../index.htm">&larr; 回專題首頁</a><span>原始檔：<a href="decisions.md">docs/decisions.md</a></span></div>
+<h1>決策紀錄（會議／非同步討論）</h1>
+<p>格式依指引 07。D-01..D-06 來自 2026-11-23、D-08..D-11 來自 2026-11-24 與 coding agent 的澄清問答（文字、非同步）。組員分工欄位待組員確認後填寫。</p>
+<div class="tbl"><table><thead><tr><th>編號</th><th>日期／方式</th><th>本次要決定</th><th>方案比較</th><th>採用與理由</th><th>未採用理由</th></tr></thead><tbody><tr><td>D-01</td><td>11-23 文字</td><td>研究問題</td><td>A 連漲後是否續漲；B 是否常態；C 跨標的比較；D 波動群聚；E agent 收斂版（B＋低估程度＋t／歷史對照＋70/30 樣本外）</td><td><strong>E</strong>：使用者先選 B 並授權改寫，再核定 E；E 有基準與對照、可檢驗</td><td>A/C/D 留作延伸；D 以 Ljung-Box 與 VIX 納入限制討論</td></tr><tr><td>D-02</td><td>11-23 文字</td><td>R / Python 分工</td><td>Python 主分析＋R 檢核；R 主分析；各做一半</td><td>使用者：「根據 Ticker Volatility 分析後結論」→ <strong>Python 主分析、R 獨立重算</strong></td><td>各做一半難以交叉驗證</td></tr><tr><td>D-03</td><td>11-23 文字</td><td>第二來源</td><td>TWSE＋FRED；只用 Stooq</td><td><strong>TWSE＋FRED</strong>：官方交易所價格可驗證 Yahoo；VIX 提供外部壓力標記</td><td>Stooq 也是第三方彙整，獨立性弱</td></tr><tr><td>D-04</td><td>11-23 文字</td><td>本次交付範圍</td><td>分析＋過程紀錄；完整成果包</td><td><strong>分析＋過程紀錄</strong>（網站、報告、PPT、影片後續）</td><td>—</td></tr><tr><td>D-05</td><td>11-23 文字</td><td>標的</td><td>4 檔跨市場；加高波動股；自訂；先建架構</td><td><strong>先建架構與紀錄樣板，用 2330.TW 跑通</strong>；正式標的由組員討論</td><td>尚未決定 → 待追蹤</td></tr><tr><td>D-06</td><td>11-23 文字</td><td>存放位置</td><td>新獨立 repo；放既有大 repo</td><td><strong>新獨立資料夾＋新 repo <code>statPresentation</code></strong></td><td>混在個人 repo 不利組員查核貢獻</td></tr><tr><td>D-07</td><td>11-23 agent 提議，待組員確認</td><td>第一次結果顯示測試期 SD 大三成</td><td>只報固定 SD；加滾動 SD</td><td><strong>加滾動 250 日 SD</strong>，分開形狀與水準</td><td>只報固定 SD 會把兩個原因混在一起</td></tr><tr><td>D-08</td><td>11-24 文字</td><td>正式標的</td><td>多檔跨市場；SPY 單檔</td><td>使用者：「全部都以 SPY 進行基準分析，資料量足夠、完整、長度也夠」→ <strong>SPY</strong>；交叉驗證改 FRED S&amp;P 500 指數</td><td>多檔留作延伸（列入限制）</td></tr><tr><td>D-09</td><td>11-24 文字</td><td>分析視窗</td><td>全樣本；活頁簿 PERIOD 視窗</td><td><strong>200、500、2,000 日三視窗樣本內比較＋2,000 日做 70/30 樣本外與滾動 SD</strong>（活頁簿 MAXN 2600 根，2,000 日在上限內）</td><td>全樣本與活頁簿畫面對不上</td></tr><tr><td>D-10</td><td>11-24 對帳後</td><td>價格欄位</td><td>close；adjclose</td><td><strong>adjclose</strong>：活頁簿 <code>FetchYahooSeries</code> 優先讀 adjclose（debug_log D-07）；交叉驗證仍用 close（指數不含息）</td><td>close 與活頁簿口徑不同</td></tr><tr><td>D-11</td><td>11-24 文字</td><td>2330 結果去留</td><td>刪除；放正文；留 repo 當測試紀錄</td><td>使用者：「留在 repo 當測試記錄過程，可以在版本更正處加入」→ <strong>保留檔案、報告附錄 A 記錄</strong></td><td>放正文會與 SPY 主結論混淆</td></tr></tbody></table></div>
+<h2>待追蹤</h2>
+<div class="tbl"><table><thead><tr><th>工作</th><th>負責人</th><th>期限</th><th>檢查人</th><th>狀態</th></tr></thead><tbody><tr><td>決定正式標的</td><td>使用者</td><td>11/24</td><td>—</td><td>完成（D-08 SPY）</td></tr><tr><td>非作者以全新資料夾依 README 重跑</td><td>＿＿</td><td>12/17</td><td>＿＿</td><td>待執行</td></tr><tr><td>推上 GitHub（公開）、設定組員權限</td><td>＿＿</td><td>＿＿</td><td>＿＿</td><td>已推上；組員權限待設定</td></tr><tr><td>書面報告填入組別、成員、截圖並縮減至 8–12 頁</td><td>＿＿</td><td>12/17</td><td>＿＿</td><td>待執行</td></tr><tr><td>第二次 skill 使用（正式標的）</td><td>＿＿</td><td>12/11</td><td>＿＿</td><td>待執行</td></tr></tbody></table></div>
+</div>
+</body>
+</html>

@@ -1,0 +1,62 @@
+<!doctype html>
+<html lang="zh-Hant">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>AI agent workflow 紀錄</title>
+<style>
+:root{--bg:#fff;--fg:#1a1a1a;--muted:#5c5c5c;--line:#e3e3e3;--soft:#f6f6f4;--accent:#c86400}
+@media (prefers-color-scheme:dark){:root{--bg:#141414;--fg:#e8e8e8;--muted:#a0a0a0;--line:#2e2e2e;--soft:#1d1d1d;--accent:#ff9a3c}}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--fg);font:16px/1.75 "Noto Sans TC","Microsoft JhengHei","PingFang TC",system-ui,sans-serif}
+.wrap{max-width:960px;margin:0 auto;padding:0 16px 48px}
+.top{border-bottom:1px solid var(--line);padding:14px 0;margin-bottom:8px;font-size:14px;color:var(--muted);display:flex;gap:12px;flex-wrap:wrap}
+a{color:var(--accent)}
+h1{font-size:28px;line-height:1.35;margin:24px 0 12px}
+h2{font-size:22px;margin:32px 0 10px;padding-bottom:4px;border-bottom:1px solid var(--line)}
+h3{font-size:18px;margin:24px 0 8px}
+h4,h5,h6{font-size:16px;margin:18px 0 6px}
+p{margin:0 0 12px}
+ul,ol{padding-left:24px;margin:0 0 12px}
+li{margin-bottom:4px}
+code{background:var(--soft);padding:1px 5px;border-radius:3px;font-size:14px;font-family:Consolas,"Courier New",monospace}
+pre{background:var(--soft);padding:12px 14px;border-radius:4px;overflow-x:auto}
+pre code{padding:0;background:none}
+blockquote{margin:0 0 12px;padding:8px 14px;border-left:4px solid var(--accent);background:var(--soft);color:var(--muted)}
+blockquote p:last-child{margin-bottom:0}
+.tbl{overflow-x:auto;margin:0 0 14px}
+table{border-collapse:collapse;font-size:15px;width:100%}
+th,td{border:1px solid var(--line);padding:6px 9px;text-align:left;vertical-align:top}
+th{background:var(--soft)}
+hr{border:0;border-top:1px solid var(--line);margin:24px 0}
+.meta{font-size:14px;color:var(--muted)}
+</style>
+</head>
+<body>
+<div class="wrap">
+<div class="top"><a href="../index.htm">&larr; 回專題首頁</a><span>原始檔：<a href="ai_workflow.md">docs/ai_workflow.md</a></span></div>
+<h1>AI agent workflow 紀錄</h1>
+<p>工具：Claude Code（桌面版 Code 分頁），模型 Claude Opus 5.5（<code>claude-opus-5-5</code>），2026-11-23。付費：使用者個人訂閱方案；未呼叫額外付費 API。資料 API（Yahoo／TWSE／FRED）皆免費公開端點。</p>
+<p>一條完整的 <strong>規劃 → 審查 → 實作 → 測試 → 修正</strong> 流程，每一步標出人工決策點（🧑）與產出證據。</p>
+<pre><code>Define ──► Plan ──► Review ──► Code ──► Test ──► Fix ──► Reflect
+  🧑         🤖       🧑         🤖       🤖+🧑     🤖       🧑</code></pre>
+<h2>1. Define：釐清問題（人工決策主導）</h2>
+<div class="tbl"><table><thead><tr><th>時間</th><th>事件</th><th>證據</th></tr></thead><tbody><tr><td>開始</td><td>使用者提供：Ticker Volatility.xlsm、課程指引截圖，要求「資料分析」與「工具使用過程紀錄」</td><td>對話</td></tr><tr><td>—</td><td>Agent 依專案規則先問 10 題澄清題（分三輪 4＋4＋2）</td><td>decisions.md D-01..D-06</td></tr><tr><td>🧑</td><td>研究問題：使用者先提「判斷波動是否極端、是否遵循常態」，並授權 agent 給更好界定</td><td>D-01</td></tr><tr><td>🧑</td><td>使用者補上完整課程指引 PDF（27 頁），agent 讀完後發現「至少 3 份資料、2 個獨立來源」門檻</td><td>D-03</td></tr><tr><td>🧑</td><td>採用 agent 提的收斂版問題（加入基準＝常態、對照＝t／歷史、70/30 樣本外驗證）</td><td>D-01</td></tr></tbody></table></div>
+<h2>2. Plan：拆解任務</h2>
+<p>Agent 提出分工（使用者核定）：</p>
+<div class="tbl"><table><thead><tr><th>任務</th><th>語言</th><th>輸入 → 輸出</th></tr></thead><tbody><tr><td>抓資料（3 來源）</td><td>Python <code>fetch.py</code></td><td>API → <code>data/raw/*</code>、<code>manifest.json</code></td></tr><tr><td>清理、交叉驗證、整合</td><td>Python <code>integrate.py</code></td><td>raw → <code>data/processed/returns_*.csv</code></td></tr><tr><td>統計分析與圖</td><td>Python <code>analyze.py</code>、<code>run_all.py</code></td><td>returns → <code>results/tables/*.json</code>、<code>results/figures/*.png</code></td></tr><tr><td>獨立重算檢核</td><td>R <code>verify.R</code></td><td>同一份 returns CSV → <code>results/tables/r_check_*.csv</code></td></tr><tr><td>與活頁簿對帳</td><td>Python <code>workbook_replica.py</code> + PowerShell COM</td><td>活頁簿副本 → <code>docs/evidence/*.json</code></td></tr><tr><td>可重用檢查</td><td>skill <code>return-distribution-check</code></td><td>任一 CSV → 報告 / 停止</td></tr></tbody></table></div>
+<h2>3. Review：人工審核點</h2>
+<div class="tbl"><table><thead><tr><th>🧑 決策</th><th>內容</th></tr></thead><tbody><tr><td>標的</td><td>使用者回「先不要分析」→ 澄清後決定<strong>先建架構、用 1 檔跑通</strong>，標的另定（D-05）</td></tr><tr><td>第二來源</td><td>使用者選 TWSE 官方＋FRED（D-03）</td></tr><tr><td>交付範圍</td><td>只做分析＋過程紀錄；網站、PPT、影片之後再做（D-04）</td></tr><tr><td>位置</td><td>新獨立資料夾＋新 repo，名稱 statPresentation（D-06）</td></tr></tbody></table></div>
+<h2>4. Code：小步實作</h2>
+<p>依序：fetch → integrate → analyze → run_all → 跑通 → R 檢核 → 單元測試 → skill → 文件。每一步跑過才進下一步；詳細版本變化見 <code>vibe_coding_log.md</code>。</p>
+<h2>5. Test：用已知答案、邊界與反例測試</h2>
+<ul><li>Python 單元測試 19 項（手算例、教科書 Wilson 區間、模擬常態不應被拒絕、重複鍵必須停止、VIX 不可偷看當日）。</li><li>R 獨立重算 26 項，全部通過。</li><li>活頁簿對帳：SD、超過 2SD 天數、±1/2/3 SD 內比例完全一致。</li><li>測試結果紀錄：<code>test_plan.md</code>。</li></ul>
+<h2>6. Fix：實際發生的錯誤與修正</h2>
+<p>見 <code>debug_log.md</code>（D-01..D-05，全部是真實發生、有輸出可查的錯誤，沒有杜撰）。其中 D-04 是<strong>整合資料後才發現的資料錯誤</strong>：Yahoo 在非交易日 2026-10-23 多了一根陳舊 K 棒。</p>
+<h2>7. Reflect：分析過程中改變的計畫</h2>
+<ul><li>第一次跑完發現測試期 SD 比訓練期大三成 → 所有固定參數模型都低估。 Agent 提議加「滾動 250 日 SD」版本，把「尾巴形狀」與「波動水準」分開評估。這是<strong>看到結果後新增的分析</strong>，在 results.md 中明確標示，不當成事前假設。</li><li>剩餘限制與下一步：見 results.md「限制」。</li></ul>
+<h2>人類必須能回答的問題（指引 07）</h2>
+<ul><li>我負責哪一步？→ 由組員分工後填入 <code>decisions.md</code>。</li><li>AI 提供了什麼、人改了什麼？→ <code>ai_disclosure.md</code> 每筆的「人類判斷」欄。</li><li>哪個測試證明結果合理？→ R 44/44、活頁簿對帳、模擬常態測試。</li></ul>
+</div>
+</body>
+</html>

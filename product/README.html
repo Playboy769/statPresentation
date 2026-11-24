@@ -1,0 +1,55 @@
+<!doctype html>
+<html lang="zh-Hant">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Ticker Volatility 活頁簿（產品原始碼）</title>
+<style>
+:root{--bg:#fff;--fg:#1a1a1a;--muted:#5c5c5c;--line:#e3e3e3;--soft:#f6f6f4;--accent:#c86400}
+@media (prefers-color-scheme:dark){:root{--bg:#141414;--fg:#e8e8e8;--muted:#a0a0a0;--line:#2e2e2e;--soft:#1d1d1d;--accent:#ff9a3c}}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--fg);font:16px/1.75 "Noto Sans TC","Microsoft JhengHei","PingFang TC",system-ui,sans-serif}
+.wrap{max-width:960px;margin:0 auto;padding:0 16px 48px}
+.top{border-bottom:1px solid var(--line);padding:14px 0;margin-bottom:8px;font-size:14px;color:var(--muted);display:flex;gap:12px;flex-wrap:wrap}
+a{color:var(--accent)}
+h1{font-size:28px;line-height:1.35;margin:24px 0 12px}
+h2{font-size:22px;margin:32px 0 10px;padding-bottom:4px;border-bottom:1px solid var(--line)}
+h3{font-size:18px;margin:24px 0 8px}
+h4,h5,h6{font-size:16px;margin:18px 0 6px}
+p{margin:0 0 12px}
+ul,ol{padding-left:24px;margin:0 0 12px}
+li{margin-bottom:4px}
+code{background:var(--soft);padding:1px 5px;border-radius:3px;font-size:14px;font-family:Consolas,"Courier New",monospace}
+pre{background:var(--soft);padding:12px 14px;border-radius:4px;overflow-x:auto}
+pre code{padding:0;background:none}
+blockquote{margin:0 0 12px;padding:8px 14px;border-left:4px solid var(--accent);background:var(--soft);color:var(--muted)}
+blockquote p:last-child{margin-bottom:0}
+.tbl{overflow-x:auto;margin:0 0 14px}
+table{border-collapse:collapse;font-size:15px;width:100%}
+th,td{border:1px solid var(--line);padding:6px 9px;text-align:left;vertical-align:top}
+th{background:var(--soft)}
+hr{border:0;border-top:1px solid var(--line);margin:24px 0}
+.meta{font-size:14px;color:var(--muted)}
+</style>
+</head>
+<body>
+<div class="wrap">
+<div class="top"><a href="../index.htm">&larr; 回專題首頁</a><span>原始檔：<a href="README.md">product/README.md</a></span></div>
+<h1>Ticker Volatility 活頁簿（產品原始碼）</h1>
+<p>本專題的主軸之一。輸入任一 Yahoo 代號，即可看到該檔股票的波動輪廓。</p>
+<div class="tbl"><table><thead><tr><th>檔案</th><th>內容</th></tr></thead><tbody><tr><td><code>modVT.bas</code></td><td>主程式（VBA 模組）：抓 Yahoo 價格、計算報酬與統計量、畫表與圖</td></tr><tr><td><code>SheetTickerVolatility_Code.txt</code></td><td>工作表事件碼：改 TICKER／PERIOD／FREQ 後自動重算</td></tr><tr><td><code>build.ps1</code></td><td>從空白活頁簿建出 <code>Ticker Volatility.xlsm</code></td></tr></tbody></table></div>
+<h2>建置</h2>
+<p>需 Windows＋Excel，且在信任中心勾選「信任存取 VBA 專案物件模型」：</p>
+<pre><code>powershell -STA -File product\build.ps1 -OutPath &quot;C:\path\Ticker Volatility.xlsm&quot;</code></pre>
+<h2>使用</h2>
+<p>開啟活頁簿，B2 輸入代號（如 SPY、AAPL、2330），B3 輸入 PERIOD（顯示的 K 棒數），E3 選頻率 D／W／M。需連網。</p>
+<h2>輸出區塊</h2>
+<div class="tbl"><table><thead><tr><th>區塊</th><th>內容</th></tr></thead><tbody><tr><td>RETURN HISTORY</td><td>期間、SD、超過 2 SD 的天數</td></tr><tr><td>報酬分布圖</td><td>直方圖疊常態曲線，標出最新一根的位置</td></tr><tr><td>逐日報酬圖</td><td>±1、±2 SD 虛線，超過 2 SD 標橘色</td></tr><tr><td>STANDARD DEVIATION / SD</td><td>±1／2／3 SD 的價格區間與實際落在區間內的比例（DAYS INSIDE）</td></tr><tr><td>PROXY CHECK</td><td>與大盤的相關、Beta</td></tr><tr><td>UP DAYS VS DOWN DAYS／STRETCH</td><td>漲跌天數、近期累積漲跌</td></tr><tr><td>RETURN BANDS／BIGGEST DAYS</td><td>報酬分組次數、最大漲跌日</td></tr><tr><td>STREAK LENGTH</td><td>連漲／連跌的次數與延續機率</td></tr></tbody></table></div>
+<h2>抓取紀錄（Manifest）</h2>
+<p>每次向 Yahoo 抓價格（含 PROXY CHECK 用的大盤 SPY／^TWII，抓取失敗也算），活頁簿都會在隱藏工作表 <code>Manifest</code> 新增一列，只保留最近 500 列。要查看時，在 Excel 的工作表分頁按右鍵 →「取消隱藏」。</p>
+<div class="tbl"><table><thead><tr><th>欄位</th><th>內容</th></tr></thead><tbody><tr><td>FETCHED (LOCAL)</td><td>抓取時間（本機時間）</td></tr><tr><td>TICKER</td><td>實際抓的代號（台股數字代號會顯示補上的 .TW／.TWO）</td></tr><tr><td>URL</td><td>Yahoo API 網址</td></tr><tr><td>STATUS</td><td><code>OK</code>，或失敗原因（如 <code>HTTP 404 no prices</code>）</td></tr><tr><td>ROWS</td><td>取得的價格筆數</td></tr><tr><td>FIRST DATE／LAST DATE</td><td>價格的起訖日</td></tr><tr><td>SHA256</td><td>Yahoo 原始回應（UTF-8）的指紋；電腦缺 .NET 時留白</td></tr><tr><td>BYTES</td><td>原始回應長度</td></tr></tbody></table></div>
+<p>用途與研究端的 <code>data/manifest.json</code> 相同：事後可確認畫面是用哪一天、哪一段資料算的。Yahoo 回應含即時報價欄位，所以同一代號不同時間抓，SHA256 通常不同；要比對的是 ROWS 與起訖日。</p>
+<p>本專題的分析與活頁簿使用同一份 Yahoo 含息調整價格，並以 Excel 實際執行本活頁簿對帳（見 <code>docs/workbook_check.md</code>）。</p>
+</div>
+</body>
+</html>

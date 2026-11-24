@@ -1,0 +1,57 @@
+<!doctype html>
+<html lang="zh-Hant">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>除錯紀錄</title>
+<style>
+:root{--bg:#fff;--fg:#1a1a1a;--muted:#5c5c5c;--line:#e3e3e3;--soft:#f6f6f4;--accent:#c86400}
+@media (prefers-color-scheme:dark){:root{--bg:#141414;--fg:#e8e8e8;--muted:#a0a0a0;--line:#2e2e2e;--soft:#1d1d1d;--accent:#ff9a3c}}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--fg);font:16px/1.75 "Noto Sans TC","Microsoft JhengHei","PingFang TC",system-ui,sans-serif}
+.wrap{max-width:960px;margin:0 auto;padding:0 16px 48px}
+.top{border-bottom:1px solid var(--line);padding:14px 0;margin-bottom:8px;font-size:14px;color:var(--muted);display:flex;gap:12px;flex-wrap:wrap}
+a{color:var(--accent)}
+h1{font-size:28px;line-height:1.35;margin:24px 0 12px}
+h2{font-size:22px;margin:32px 0 10px;padding-bottom:4px;border-bottom:1px solid var(--line)}
+h3{font-size:18px;margin:24px 0 8px}
+h4,h5,h6{font-size:16px;margin:18px 0 6px}
+p{margin:0 0 12px}
+ul,ol{padding-left:24px;margin:0 0 12px}
+li{margin-bottom:4px}
+code{background:var(--soft);padding:1px 5px;border-radius:3px;font-size:14px;font-family:Consolas,"Courier New",monospace}
+pre{background:var(--soft);padding:12px 14px;border-radius:4px;overflow-x:auto}
+pre code{padding:0;background:none}
+blockquote{margin:0 0 12px;padding:8px 14px;border-left:4px solid var(--accent);background:var(--soft);color:var(--muted)}
+blockquote p:last-child{margin-bottom:0}
+.tbl{overflow-x:auto;margin:0 0 14px}
+table{border-collapse:collapse;font-size:15px;width:100%}
+th,td{border:1px solid var(--line);padding:6px 9px;text-align:left;vertical-align:top}
+th{background:var(--soft)}
+hr{border:0;border-top:1px solid var(--line);margin:24px 0}
+.meta{font-size:14px;color:var(--muted)}
+</style>
+</head>
+<body>
+<div class="wrap">
+<div class="top"><a href="../index.htm">&larr; 回專題首頁</a><span>原始檔：<a href="debug_log.md">docs/debug_log.md</a></span></div>
+<h1>除錯紀錄</h1>
+<p>格式依指引附錄 B。全部為實際發生的錯誤（D-01..D-05：2026-11-23；D-06..D-07：2026-11-24），原始輸出可由對應 commit 重現。</p>
+<hr>
+<h3>D-01　單元測試資料產生了不存在的日期</h3>
+<ul><li><strong>發現</strong>：Agent 跑 <code>python -m unittest</code> 時（ERROR）。</li><li><strong>重現輸入</strong>：<code>test_duplicates_keep_last_and_drop_missing</code> 用 <code>f&quot;2024-02-{d:02d}&quot;</code> 產生 2 月 1–32 日。</li><li><strong>預期</strong>：測試重複日期處理。<strong>實際</strong>：<code>pd.to_datetime</code> 對 2024-02-30 拋例外。</li><li><strong>根因</strong>：<strong>測試本身寫錯</strong>，不是被測程式的錯。</li><li><strong>修正</strong>：改用 <code>pd.date_range</code> 產生真實日曆。<strong>重測</strong>：通過。</li></ul>
+<h3>D-02　浮點數用「完全相等」比較</h3>
+<ul><li><strong>發現</strong>：<code>test_wilson_edges</code> FAIL：<code>6.9e-18 != 0.0</code>。</li><li><strong>根因</strong>：Wilson 下界的公式在 x=0 時得到 ~1e-17 而非精確 0；測試用 <code>assertEqual</code> 不恰當。</li><li><strong>修正</strong>：改 <code>assertAlmostEqual(places=12)</code>。程式不改（數值上已是 0）。</li></ul>
+<h3>D-03　稀有事件的測試容差設計錯誤（統計層級的錯誤）</h3>
+<ul><li><strong>發現</strong>：<code>test_exceedance_on_simulated_normal_matches_normal</code> FAIL：模擬常態資料 k=3 觀察 40 次、預期約 54 次，比值 0.74，超出設定的 ±15%。</li><li><strong>根因</strong>：k=3 預期約 54 次，次數標準差約 √54 ≈ 7.3；±15% 只有約 1.1 個標準差，真模型也有約 27% 機率失敗。<strong>這個測試的判準在統計上就是錯的</strong>。</li><li><strong>修正</strong>：改用「二項檢定不拒絕真模型（p &gt; 0.01）＋Wilson CI 涵蓋理論值」。此例 p = 0.056、CI [0.00147, 0.00272] 涵蓋 0.00270。</li><li><strong>誠實揭露</strong>：判準是看到失敗後才改的。為避免「換種子換到通過」，<strong>種子 20261123 保持不變</strong>；新判準由理論（二項分布）決定，不是由這次的結果決定。</li></ul>
+<h3>D-04　Yahoo 在非交易日多一根陳舊 K 棒（資料錯誤，整合時發現）</h3>
+<ul><li><strong>發現</strong>：Yahoo × TWSE 交叉驗證，<code>only_yahoo = 1</code>、<code>only_twse = 1</code>。</li><li><strong>追查</strong>：TWSE 原始資料 2026-10 從 10/22 直接跳到 10/27；Yahoo 在 10/23 有一根收盤 2385 （＝TWSE 10/22 收盤）。→ Yahoo 把非交易日補成陳舊價格，會多一筆假的 0% 報酬。另一筆：2025-08-01 Yahoo 收盤是 null，TWSE 為 1140。</li><li><strong>影響</strong>：單筆 0% 報酬對 SD 影響極小（訓練期 n 1699 → 1698；SD 1.6024% → 1.6028%），但它是「只用單一來源不會發現」的錯誤，正是多來源整合的價值。</li><li><strong>修正</strong>：<code>integrate.drop_non_trading()</code> 刪除交叉驗證視窗內 TWSE 判定非交易日的 Yahoo 列，數量寫入品質紀錄。 R 重驗 26/26、單元測試 14/14 通過。</li><li><strong>剩餘限制</strong>：視窗外（2024-12 以前）的同類問題無法用 TWSE 驗證（只抓 24 個月，避免過量請求）。</li></ul>
+<h3>D-05　PowerShell COM 寫入數字失敗</h3>
+<ul><li><strong>發現</strong>：對活頁簿副本寫 <code>B3 = 250</code> 時 <code>Unable to cast System.Int32 to System.String</code>。</li><li><strong>根因</strong>：同一個 PowerShell 工作階段先寫字串（B2）再寫整數，COM 型別快取衝突（專案筆記已知問題）。</li><li><strong>修正</strong>：一律寫字串 <code>[string]$Period</code>；活頁簿本身以 <code>IsNumeric</code> 轉換。重跑成功。</li></ul>
+<h3>D-06　SPY 與 S&amp;P 500 指數的報酬差距（交叉驗證時發現）</h3>
+<ul><li><strong>發現</strong>：SPY（Yahoo close）× FRED SP500，2,510 個共同交易日中 145 天差距 &gt; 0.1 個百分點。</li><li><strong>追查</strong>：其中 40 天全部是除息日，差距約 −0.2 至 −0.6 pp；加回當日股利／前一日收盤後縮小到約 −0.05 pp（ETF 價格會因配息下跌，價格指數不會）。其餘大差距集中在極端行情日（2020-03-13/16/17、2025-04-09 +0.99 pp 與 04-10 −0.92 pp），相鄰兩日正負抵銷，屬 ETF 收盤與指數收盤的時點差。</li><li><strong>未解決</strong>：2026-06-26 一筆 −0.68 pp，查不到配息或休市原因，列為限制。</li><li><strong>修正</strong>：<code>integrate.crosscheck_index()</code> 只在兩邊都有資料的連續日期計算報酬，並併入 Yahoo 配息事件算 <code>diff_div_adj</code>；新增單元測試（除息手算例、單邊休市不產生跨日報酬）。結論：Yahoo 價格可用，相關 0.9973。</li></ul>
+<h3>D-07　活頁簿讀的是含息調整價 adjclose，不是 close（對帳時發現）</h3>
+<ul><li><strong>發現</strong>：SPY 的活頁簿對帳，SD 與「超過 2 SD」一致，但「±1 SD 內」比例差 1–5 天（PERIOD 200/500/2000）。</li><li><strong>追查</strong>：重讀 <code>VT/modVT.bas</code> 的 <code>FetchYahooSeries</code>——有 <code>adjclose</code> 就用它，沒有才退回 <code>close</code>。先前文件、複製版與 AI 都假設活頁簿用 close；2330 的 250 日對帳剛好一致是巧合（該期間 2330 未除息或影響小於顯示精度）。</li><li><strong>修正</strong>：<code>fetch.parse_yahoo</code> 一併取 adjclose；<code>config.json</code> 新增 <code>price_field: adjclose</code> 作為主分析價格，交叉驗證仍用 close。重跑後 SPY 三視窗與活頁簿全部完全一致（<code>docs/evidence/workbook_vs_python_SPY_20261124.json</code>）；R 41/41、單元測試 17/17。</li><li><strong>教訓</strong>：「對帳一致」不能只驗一個視窗；要用會配息的標的、多個 PERIOD 才能驗出欄位口徑。</li></ul>
+</div>
+</body>
+</html>

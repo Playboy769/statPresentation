@@ -1,0 +1,62 @@
+<!doctype html>
+<html lang="zh-Hant">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>return-distribution-check</title>
+<style>
+:root{--bg:#fff;--fg:#1a1a1a;--muted:#5c5c5c;--line:#e3e3e3;--soft:#f6f6f4;--accent:#c86400}
+@media (prefers-color-scheme:dark){:root{--bg:#141414;--fg:#e8e8e8;--muted:#a0a0a0;--line:#2e2e2e;--soft:#1d1d1d;--accent:#ff9a3c}}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--fg);font:16px/1.75 "Noto Sans TC","Microsoft JhengHei","PingFang TC",system-ui,sans-serif}
+.wrap{max-width:960px;margin:0 auto;padding:0 16px 48px}
+.top{border-bottom:1px solid var(--line);padding:14px 0;margin-bottom:8px;font-size:14px;color:var(--muted);display:flex;gap:12px;flex-wrap:wrap}
+a{color:var(--accent)}
+h1{font-size:28px;line-height:1.35;margin:24px 0 12px}
+h2{font-size:22px;margin:32px 0 10px;padding-bottom:4px;border-bottom:1px solid var(--line)}
+h3{font-size:18px;margin:24px 0 8px}
+h4,h5,h6{font-size:16px;margin:18px 0 6px}
+p{margin:0 0 12px}
+ul,ol{padding-left:24px;margin:0 0 12px}
+li{margin-bottom:4px}
+code{background:var(--soft);padding:1px 5px;border-radius:3px;font-size:14px;font-family:Consolas,"Courier New",monospace}
+pre{background:var(--soft);padding:12px 14px;border-radius:4px;overflow-x:auto}
+pre code{padding:0;background:none}
+blockquote{margin:0 0 12px;padding:8px 14px;border-left:4px solid var(--accent);background:var(--soft);color:var(--muted)}
+blockquote p:last-child{margin-bottom:0}
+.tbl{overflow-x:auto;margin:0 0 14px}
+table{border-collapse:collapse;font-size:15px;width:100%}
+th,td{border:1px solid var(--line);padding:6px 9px;text-align:left;vertical-align:top}
+th{background:var(--soft)}
+hr{border:0;border-top:1px solid var(--line);margin:24px 0}
+.meta{font-size:14px;color:var(--muted)}
+</style>
+</head>
+<body>
+<div class="wrap">
+<div class="top"><a href="../../index.htm">&larr; 回專題首頁</a><span>原始檔：<a href="SKILL.md">skills/return-distribution-check/SKILL.md</a></span></div>
+<div class="tbl"><table><tr><th>name</th><td>return-distribution-check</td></tr><tr><th>description</th><td>Check a price/return CSV before anyone reads +/-k SD bands as &quot;probabilities&quot; - data integrity first, then normality and tail-frequency diagnostics. Use when a team member brings a new ticker or data file into the project, or before quoting any &quot;x% of days fall inside 2 SD&quot; statement.</td></tr><tr><th>version</th><td>1.0 (2026-11-23)</td></tr></table></div>
+<h1>return-distribution-check</h1>
+<h2>Purpose</h2>
+<p>The Ticker Volatility workbook draws +/-1/2/3 SD bands. Reading those bands as "68% / 95% / 99.7% of days" silently assumes normal, independent returns. This skill makes that assumption explicit and checkable for any new data file, and <strong>refuses to produce statistics when the data are broken</strong> (duplicate dates, too short, constant prices) instead of printing a plausible-looking table.</p>
+<h2>When to use</h2>
+<ul><li>A new ticker or CSV enters the project (before it goes into <code>run_all.py</code>).</li><li>Someone wants to quote an exceedance probability from SD bands.</li></ul>
+<p>Do <strong>not</strong> use it to decide whether a model is "correct" - it only flags. Conclusions still come from <code>python/run_all.py</code> + <code>r/verify.R</code> and human review.</p>
+<h2>Input</h2>
+<p>CSV with columns <code>date</code> and <code>close</code> (daily, any order). Optional extra columns are ignored.</p>
+<h2>Steps (what the script does, in order)</h2>
+<ol><li><strong>Integrity gate</strong> - parse dates, count missing / non-positive closes, duplicate dates. Duplicate dates =&gt; STOP (exit 2): a duplicate would create a zero or double-counted return and inflate the join in <code>integrate.py</code>.</li><li><strong>Size gate</strong> - fewer than 250 returns =&gt; STOP (exit 2): JB and 3 SD frequencies are meaningless on a few months (expected 3 SD count &lt; 1).</li><li><strong>Variance gate</strong> - zero variance =&gt; STOP (exit 2).</li><li><strong>Diagnostics</strong> - n, SD, skew, excess kurtosis, Jarque-Bera p, Ljung-Box on squared returns (lag 10), and for k = 1, 2, 3: observed share of days with |r - mean| &gt; k SD vs the normal value, with Wilson 95% CI.</li><li><strong>Flags (not verdicts)</strong> - <code>FAT_TAILS</code> if excess kurtosis &gt; 1 and the 3 SD frequency CI lies above the normal value; <code>CLUSTERING</code> if Ljung-Box p &lt; 0.01; <code>NORMAL_OK</code> only if neither fires and JB p &gt; 0.05.</li></ol>
+<h2>Output</h2>
+<p><code>&lt;out&gt;.md</code> human-readable report + <code>&lt;out&gt;.json</code> machine-readable, same numbers. Exit code: 0 = ran, 2 = stopped by a gate (report explains why).</p>
+<h2>How to run</h2>
+<pre><code>python skills/return-distribution-check/check_returns.py &lt;input.csv&gt; --out results/skill/&lt;name&gt;</code></pre>
+<h2>Prohibitions</h2>
+<ul><li>Never fill missing prices or drop duplicates automatically - report and stop.</li><li>Never state "returns are normal"; the strongest wording is "no evidence against normality at this sample size".</li><li>Never present full-sample numbers as out-of-sample performance.</li></ul>
+<h2>Verification of the skill itself</h2>
+<p><code>examples/</code> holds two documented runs:</p>
+<ol><li><code>run1_2330_normal_case.md</code> - real data, expected: runs, FAT_TAILS + CLUSTERING.</li><li><code>run2_duplicate_dates_boundary.md</code> - same data with injected duplicate dates and a 100-row file, expected: both STOP with exit 2 and no statistics.</li></ol>
+<h2>Known limitations</h2>
+<ul><li>Daily simple returns only; no frequency conversion.</li><li>250-return floor is a judgement call (one trading year), not a derived constant.</li></ul>
+</div>
+</body>
+</html>

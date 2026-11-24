@@ -1,0 +1,54 @@
+<!doctype html>
+<html lang="zh-Hant">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>與 Ticker Volatility 活頁簿對帳</title>
+<style>
+:root{--bg:#fff;--fg:#1a1a1a;--muted:#5c5c5c;--line:#e3e3e3;--soft:#f6f6f4;--accent:#c86400}
+@media (prefers-color-scheme:dark){:root{--bg:#141414;--fg:#e8e8e8;--muted:#a0a0a0;--line:#2e2e2e;--soft:#1d1d1d;--accent:#ff9a3c}}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--fg);font:16px/1.75 "Noto Sans TC","Microsoft JhengHei","PingFang TC",system-ui,sans-serif}
+.wrap{max-width:960px;margin:0 auto;padding:0 16px 48px}
+.top{border-bottom:1px solid var(--line);padding:14px 0;margin-bottom:8px;font-size:14px;color:var(--muted);display:flex;gap:12px;flex-wrap:wrap}
+a{color:var(--accent)}
+h1{font-size:28px;line-height:1.35;margin:24px 0 12px}
+h2{font-size:22px;margin:32px 0 10px;padding-bottom:4px;border-bottom:1px solid var(--line)}
+h3{font-size:18px;margin:24px 0 8px}
+h4,h5,h6{font-size:16px;margin:18px 0 6px}
+p{margin:0 0 12px}
+ul,ol{padding-left:24px;margin:0 0 12px}
+li{margin-bottom:4px}
+code{background:var(--soft);padding:1px 5px;border-radius:3px;font-size:14px;font-family:Consolas,"Courier New",monospace}
+pre{background:var(--soft);padding:12px 14px;border-radius:4px;overflow-x:auto}
+pre code{padding:0;background:none}
+blockquote{margin:0 0 12px;padding:8px 14px;border-left:4px solid var(--accent);background:var(--soft);color:var(--muted)}
+blockquote p:last-child{margin-bottom:0}
+.tbl{overflow-x:auto;margin:0 0 14px}
+table{border-collapse:collapse;font-size:15px;width:100%}
+th,td{border:1px solid var(--line);padding:6px 9px;text-align:left;vertical-align:top}
+th{background:var(--soft)}
+hr{border:0;border-top:1px solid var(--line);margin:24px 0}
+.meta{font-size:14px;color:var(--muted)}
+</style>
+</head>
+<body>
+<div class="wrap">
+<div class="top"><a href="../index.htm">&larr; 回專題首頁</a><span>原始檔：<a href="workbook_check.md">docs/workbook_check.md</a></span></div>
+<h1>與 Ticker Volatility 活頁簿對帳</h1>
+<p>目的：確認本專題的數字就是使用者在活頁簿上看到的數字，結論才能說是「根據 Ticker Volatility」。</p>
+<h2>方法</h2>
+<ol><li>讀活頁簿 VBA 原始碼（<code>VT/modVT.bas</code> 的 <code>DrawPage</code>），把日線 SD 區塊的算法寫成 <code>python/workbook_replica.py</code>：<ul><li>價格：Yahoo <strong>adjclose</strong>（<code>FetchYahooSeries</code> 有 adjclose 就用，見 debug_log D-07）</li><li>樣本：最近 max(520, PERIOD) 筆簡單報酬（日線最多 MAXN = 2600 根）</li><li>視窗：最近 PERIOD 筆，SD 用 n−1</li><li>「超過 2 SD」：視窗內 |r − 視窗平均| &gt; 2·SD 的天數</li><li>「DAYS INSIDE」：全樣本 |r| ≤ k·SD 的比例（注意：活頁簿<strong>沒有減平均</strong>）</li></ul></li><li>複製一份活頁簿到暫存資料夾（<strong>原檔不動</strong>），用 Excel COM 隱藏執行： B2＝代號、B3＝PERIOD、E3＝D，執行 <code>RunVT</code>，讀回 C8、M10:M12、P10:P12。</li><li>同一時間抓 Yahoo 資料，用複製版計算後比較。</li></ol>
+<h2>結果：SPY，PERIOD 200／500／2000（2026-11-24，主分析）</h2>
+<div class="tbl"><table><thead><tr><th>PERIOD</th><th>活頁簿 SD</th><th>Python SD</th><th>超過 2 SD（活頁簿／Python）</th><th>±1／2／3 SD 內（活頁簿＝Python）</th></tr></thead><tbody><tr><td>200</td><td>1.00%</td><td>1.0009%</td><td>7 / 7</td><td>0.775 / 0.953846 / 0.984615</td></tr><tr><td>500</td><td>1.10%</td><td>1.1027%</td><td>18 / 18</td><td>0.817308 / 0.963462 / 0.986538</td></tr><tr><td>2000</td><td>1.22%</td><td>1.2240%</td><td>90 / 90</td><td>0.8035 / 0.9555 / 0.9855</td></tr></tbody></table></div>
+<p>全部完全一致（以 adjclose 計算）。原始輸出：<code>docs/evidence/workbook_vs_python_SPY_20261124.json</code>。第一次對帳用 close 時，±1 SD 內差 1–5 天，因而發現活頁簿讀的是 adjclose（debug_log D-07）。</p>
+<h2>早期結果：2330，PERIOD 250（2026-11-23，流程驗證）</h2>
+<div class="tbl"><table><thead><tr><th>項目</th><th>活頁簿</th><th>Python 複製版</th><th>判定</th></tr></thead><tbody><tr><td>視窗 SD</td><td>2.14%</td><td>2.1384%</td><td>一致（顯示到兩位小數）</td></tr><tr><td>視窗內超過 2 SD</td><td>15 / 250</td><td>15</td><td>一致</td></tr><tr><td>±1 SD 內</td><td>0.763462</td><td>0.763462</td><td>完全一致</td></tr><tr><td>±2 SD 內</td><td>0.95</td><td>0.95</td><td>完全一致</td></tr><tr><td>±3 SD 內</td><td>0.988462</td><td>0.988462</td><td>完全一致</td></tr></tbody></table></div>
+<p>原始輸出：<code>docs/evidence/workbook_vs_python_2330_20261123.json</code>。</p>
+<h2>從活頁簿就看得到的非常態訊號（2330 早期版本；SPY 見 results.md §1）</h2>
+<div class="tbl"><table><thead><tr><th>區間</th><th>活頁簿實際</th><th>常態理論</th><th>差異</th></tr></thead><tbody><tr><td>±1 SD 內</td><td>76.3%</td><td>68.3%</td><td>中央較尖（比常態多 8 個百分點）</td></tr><tr><td>±2 SD 內</td><td>95.0%</td><td>95.4%</td><td>接近</td></tr><tr><td>±3 SD 內</td><td>98.85%</td><td>99.73%</td><td>尾巴較厚：超出 3 SD 的日子是常態的 4.3 倍（1.15% vs 0.27%）</td></tr></tbody></table></div>
+<h2>注意</h2>
+<ul><li>活頁簿的 SD 用 PERIOD 視窗、DAYS INSIDE 用 520 筆全樣本，且 DAYS INSIDE 不減平均；本專題主分析（<code>analyze.py</code>）用訓練期平均與 SD，兩者口徑不同，<strong>不要直接拿兩邊數字相比</strong>。</li><li>資料是當天下載，隔天重跑數字會變；對帳的重點是「同一份資料、同一套算法得到同一個數字」。</li></ul>
+</div>
+</body>
+</html>

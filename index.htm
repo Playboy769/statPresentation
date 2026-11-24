@@ -109,10 +109,10 @@
   <div class="tbl"><table>
     <thead><tr><th>成員</th><th>負責項目</th><th>對應產出</th><th>審查人</th></tr></thead>
     <tbody>
-      <tr><td class="todo">＿＿＿＿</td><td>產品開發</td><td class="l"><a href="product/README.md">product/</a>（活頁簿 VBA）</td><td class="todo">＿＿＿＿</td></tr>
-      <tr><td class="todo">＿＿＿＿</td><td>問題與統計設計</td><td class="l"><a href="docs/results.md">docs/results.md</a>、報告參、伍</td><td class="todo">＿＿＿＿</td></tr>
-      <tr><td class="todo">＿＿＿＿</td><td>資料、程式與測試</td><td class="l"><a href="python/">python/</a>、<a href="r/verify.R">r/</a>、<a href="docs/test_plan.md">測試計畫</a></td><td class="todo">＿＿＿＿</td></tr>
-      <tr><td class="todo">＿＿＿＿</td><td>AI 協作與整合溝通</td><td class="l"><a href="skills/return-distribution-check/SKILL.md">skills/</a>、<a href="docs/ai_workflow.md">AI 文件</a>、網站、簡報</td><td class="todo">＿＿＿＿</td></tr>
+      <tr><td class="todo">＿＿＿＿</td><td>產品開發</td><td class="l"><a href="product/README.html">product/</a>（活頁簿 VBA）</td><td class="todo">＿＿＿＿</td></tr>
+      <tr><td class="todo">＿＿＿＿</td><td>問題與統計設計</td><td class="l"><a href="docs/results.html">docs/results.md</a>、報告參、伍</td><td class="todo">＿＿＿＿</td></tr>
+      <tr><td class="todo">＿＿＿＿</td><td>資料、程式與測試</td><td class="l"><a href="python/">python/</a>、<a href="r/verify.R">r/</a>、<a href="docs/test_plan.html">測試計畫</a></td><td class="todo">＿＿＿＿</td></tr>
+      <tr><td class="todo">＿＿＿＿</td><td>AI 協作與整合溝通</td><td class="l"><a href="skills/return-distribution-check/SKILL.html">skills/</a>、<a href="docs/ai_workflow.html">AI 文件</a>、網站、簡報</td><td class="todo">＿＿＿＿</td></tr>
     </tbody>
   </table></div>
 </section>
@@ -167,7 +167,7 @@
     <li>開啟活頁簿、啟用巨集，在 B2 輸入代號（SPY、AAPL、2330 皆可），B3 輸入期間，E3 選 D／W／M。需連網。</li>
     <li>每次抓取資料都會記錄在隱藏工作表 Manifest（時間、筆數、起訖日、SHA-256），分頁按右鍵「取消隱藏」即可查看。</li>
   </ol>
-  <p>詳見 <a href="product/README.md">product/README.md</a>。</p>
+  <p>詳見 <a href="product/README.html">product/README.md</a>。</p>
 
   <h3>測試摘要</h3>
   <div class="grid">
@@ -175,7 +175,7 @@
     <div class="card"><div class="stat">44／44</div><p>R 獨立重算統計量一致</p></div>
     <div class="card"><div class="stat">3／3</div><p>活頁簿實際執行與 Python 重算對帳一致</p></div>
   </div>
-  <p>測試項目與證據見 <a href="docs/test_plan.md">docs/test_plan.md</a>、<a href="results/tables/r_check_SPY.csv">r_check_SPY.csv</a>、<a href="docs/evidence/workbook_vs_python_SPY_20261124.json">活頁簿對帳紀錄</a>。</p>
+  <p>測試項目與證據見 <a href="docs/test_plan.html">docs/test_plan.md</a>、<a href="results/tables/r_check_SPY.csv">r_check_SPY.csv</a>、<a href="docs/evidence/workbook_vs_python_SPY_20261124.json">活頁簿對帳紀錄</a>。</p>
 </section>
 
 <!-- 4 -->
@@ -195,8 +195,8 @@
   <ul class="links">
     <li>GitHub：<a href="https://github.com/Playboy769/statPresentation">github.com/Playboy769/statPresentation</a></li>
     <li class="todo">交件版本與 commit：待交件時填入</li>
-    <li>專案說明與重現步驟：<a href="README.md">README.md</a></li>
-    <li>資料字典與整合紀錄：<a href="docs/data_dictionary.md">docs/data_dictionary.md</a></li>
+    <li>專案說明與重現步驟：<a href="README.html">README.md</a></li>
+    <li>資料字典與整合紀錄：<a href="docs/data_dictionary.html">docs/data_dictionary.md</a></li>
     <li>資料下載紀錄（時間、SHA-256）：<a href="data/manifest.json">data/manifest.json</a></li>
   </ul>
   <div class="tbl"><table>
@@ -224,9 +224,9 @@ python -m unittest discover -s python/tests</pre>
   </table></div>
   <p>版本變化與重要決策：</p>
   <ul class="links">
-    <li><a href="docs/decisions.md">決策紀錄 decisions.md</a>（例：標的由 2330 改為 SPY、價格改用含息調整價）</li>
-    <li><a href="docs/debug_log.md">除錯紀錄 debug_log.md</a></li>
-    <li><a href="docs/vibe_coding_log.md">版本歷程 vibe_coding_log.md</a></li>
+    <li><a href="docs/decisions.html">決策紀錄 decisions.md</a>（例：標的由 2330 改為 SPY、價格改用含息調整價）</li>
+    <li><a href="docs/debug_log.html">除錯紀錄 debug_log.md</a></li>
+    <li><a href="docs/vibe_coding_log.html">版本歷程 vibe_coding_log.md</a></li>
   </ul>
 </section>
 
@@ -239,10 +239,10 @@ python -m unittest discover -s python/tests</pre>
     <figcaption>系統流程：產品與研究兩條線，以對帳連結</figcaption>
   </figure>
   <ul class="links">
-    <li>AI workflow 與流程：<a href="docs/ai_workflow.md">docs/ai_workflow.md</a></li>
-    <li>AI 使用揭露、主要提示與修改理由：<a href="docs/ai_disclosure.md">docs/ai_disclosure.md</a></li>
-    <li>技能文件：<a href="skills/return-distribution-check/SKILL.md">return-distribution-check/SKILL.md</a></li>
-    <li>Vibe Coding 歷程：<a href="docs/vibe_coding_log.md">docs/vibe_coding_log.md</a></li>
+    <li>AI workflow 與流程：<a href="docs/ai_workflow.html">docs/ai_workflow.md</a></li>
+    <li>AI 使用揭露、主要提示與修改理由：<a href="docs/ai_disclosure.html">docs/ai_disclosure.md</a></li>
+    <li>技能文件：<a href="skills/return-distribution-check/SKILL.html">return-distribution-check/SKILL.md</a></li>
+    <li>Vibe Coding 歷程：<a href="docs/vibe_coding_log.html">docs/vibe_coding_log.md</a></li>
     <li class="todo">公開對話紀錄（去識別化 HTML／PDF）：待補</li>
   </ul>
   <div class="callout">
@@ -266,7 +266,7 @@ python -m unittest discover -s python/tests</pre>
   <ul class="links">
     <li>公開：程式、分析結果、報告與文件。不公開：Yahoo 原始價格檔（授權限制）。</li>
     <li>已知問題：活頁簿依賴 Yahoo 非官方介面，介面改版時可能無法取得資料；只分析 SPY 一檔，結論不能直接推廣到個股。</li>
-    <li>Markdown（.md）文件在瀏覽器中以純文字顯示，於 GitHub 上閱讀排版較佳。</li>
+    <li>文件頁面（.html）由同名的 Markdown 原始檔以 <code>python python/md_to_html.py</code> 產生；修改 .md 後重跑即可更新。</li>
   </ul>
 </section>
 

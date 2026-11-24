@@ -1,0 +1,49 @@
+<!doctype html>
+<html lang="zh-Hant">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>AI 使用揭露</title>
+<style>
+:root{--bg:#fff;--fg:#1a1a1a;--muted:#5c5c5c;--line:#e3e3e3;--soft:#f6f6f4;--accent:#c86400}
+@media (prefers-color-scheme:dark){:root{--bg:#141414;--fg:#e8e8e8;--muted:#a0a0a0;--line:#2e2e2e;--soft:#1d1d1d;--accent:#ff9a3c}}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--fg);font:16px/1.75 "Noto Sans TC","Microsoft JhengHei","PingFang TC",system-ui,sans-serif}
+.wrap{max-width:960px;margin:0 auto;padding:0 16px 48px}
+.top{border-bottom:1px solid var(--line);padding:14px 0;margin-bottom:8px;font-size:14px;color:var(--muted);display:flex;gap:12px;flex-wrap:wrap}
+a{color:var(--accent)}
+h1{font-size:28px;line-height:1.35;margin:24px 0 12px}
+h2{font-size:22px;margin:32px 0 10px;padding-bottom:4px;border-bottom:1px solid var(--line)}
+h3{font-size:18px;margin:24px 0 8px}
+h4,h5,h6{font-size:16px;margin:18px 0 6px}
+p{margin:0 0 12px}
+ul,ol{padding-left:24px;margin:0 0 12px}
+li{margin-bottom:4px}
+code{background:var(--soft);padding:1px 5px;border-radius:3px;font-size:14px;font-family:Consolas,"Courier New",monospace}
+pre{background:var(--soft);padding:12px 14px;border-radius:4px;overflow-x:auto}
+pre code{padding:0;background:none}
+blockquote{margin:0 0 12px;padding:8px 14px;border-left:4px solid var(--accent);background:var(--soft);color:var(--muted)}
+blockquote p:last-child{margin-bottom:0}
+.tbl{overflow-x:auto;margin:0 0 14px}
+table{border-collapse:collapse;font-size:15px;width:100%}
+th,td{border:1px solid var(--line);padding:6px 9px;text-align:left;vertical-align:top}
+th{background:var(--soft)}
+hr{border:0;border-top:1px solid var(--line);margin:24px 0}
+.meta{font-size:14px;color:var(--muted)}
+</style>
+</head>
+<body>
+<div class="wrap">
+<div class="top"><a href="../index.htm">&larr; 回專題首頁</a><span>原始檔：<a href="ai_disclosure.md">docs/ai_disclosure.md</a></span></div>
+<h1>AI 使用揭露</h1>
+<p>格式依指引 06「AI 使用揭露的最低內容」與附錄 B。</p>
+<div class="tbl"><table><thead><tr><th>欄位</th><th>內容</th></tr></thead><tbody><tr><td>工具</td><td>Claude Code（桌面版 Code 分頁），coding agent</td></tr><tr><td>模型</td><td>Claude Opus 5.5（<code>claude-opus-5-5</code>）</td></tr><tr><td>日期</td><td>2026-11-23</td></tr><tr><td>用途</td><td>釐清問題、規劃分工、撰寫 Python／R／PowerShell 程式、執行測試、撰寫文件</td></tr><tr><td>費用</td><td>使用者個人訂閱；未呼叫額外付費 API</td></tr><tr><td>外部服務</td><td>Yahoo Finance chart API、TWSE STOCK_DAY、FRED fredgraph（皆免費公開端點；TWSE 每次請求間隔 3 秒）</td></tr><tr><td>隱藏思考</td><td>未要求、未繳交 AI 隱藏思考內容（依指引）</td></tr></tbody></table></div>
+<h2>主要提示與回應</h2>
+<div class="tbl"><table><thead><tr><th>#</th><th>使用者提示（摘要，原文為中文）</th><th>AI 回應</th><th>人類判斷（採納／修改／拒絕）</th><th>對應檔案</th></tr></thead><tbody><tr><td>P1</td><td>附上 Ticker Volatility.xlsm 與指引截圖：「1. 資料分析 2. 給我使用工具留下的過程記錄」</td><td>依專案規則提出 4 題澄清（研究問題、標的、期間、R/Python 分工）</td><td>使用者改寫研究問題為「判斷波動是否極端與是否遵循常態（或你給更好的界定）」</td><td>decisions.md D-01</td></tr><tr><td>P2</td><td>附上完整指引 PDF</td><td>讀完 27 頁，指出多來源門檻；提出收斂版研究問題、第二來源、交付範圍 4 題</td><td><strong>採納</strong>收斂版問題、TWSE＋FRED、只做分析＋紀錄；<strong>拒絕</strong>現在決定標的（「先不要分析」）</td><td>D-01, D-03, D-04</td></tr><tr><td>P3</td><td>（澄清）標的與位置</td><td>問「先不要分析」的意思與存放位置</td><td>決定先建架構用 1 檔跑通；新 repo 名稱 <code>statPresentation</code></td><td>D-05, D-06</td></tr><tr><td>P4</td><td>（agent 自主實作）</td><td>寫 fetch / integrate / analyze / run_all，跑 2330.TW</td><td>—</td><td>python/*.py</td></tr><tr><td>P5</td><td>（agent 提議）</td><td>發現測試期 SD 大三成，提議加滾動 SD 分開形狀與水準</td><td>標為事後新增分析，待組員確認</td><td>D-07、results.md §3</td></tr><tr><td>P6</td><td>「回報目前進度」</td><td>列出完成／驗證／未完成項目，並註明未 commit、未推 GitHub</td><td>使用者核可繼續</td><td>—</td></tr><tr><td>P7</td><td>「繼續寫完剩下的文件並 commit」</td><td>撰寫本檔與其餘文件，本地 commit；<strong>未推上 GitHub</strong>（需使用者另行確認）</td><td>—</td><td>首次 commit</td></tr><tr><td>P8</td><td>「開始寫書面報告 docx，標楷體 12 號黑字、小論文格式、可放截圖…」</td><td>10 題澄清：標的、格式、視窗、交叉驗證來源、2330 去留、字型、摘要</td><td>採納 SPY、三視窗＋2,000 日樣本外、FRED S&amp;P 500、2330 放版本更正</td><td>D-08..D-11</td></tr><tr><td>P9</td><td>（agent 查核）</td><td>查 VBA 上限；SPY 對帳失敗後追出 adjclose</td><td>AI 先前假設 close 是錯的，已修正並揭露</td><td>debug_log D-07</td></tr><tr><td>P10</td><td>「Update docs, commit」</td><td>更新本檔與其餘文件為 SPY 版本並 commit</td><td>—</td><td>本 commit</td></tr></tbody></table></div>
+<h2>重要錯誤修正與高風險輸出查核</h2>
+<ol><li><strong>資料錯誤（D-04）</strong>：AI 寫的整合程式比對出 Yahoo 在 2026-10-23（TWSE 無交易）多一根陳舊 K 棒。查核方法：直接讀 TWSE 原始 JSON 確認該月日期序列，再改程式並重驗。</li><li><strong>測試判準錯誤（D-03）</strong>：AI 寫的稀有事件測試容差在統計上不合理，改以二項檢定判準；種子未更動。</li><li><strong>AI 數字的獨立查核</strong>：所有統計量由 R（不同語言、不同函式庫）重算 44 項（SPY；2330 舊版 26 項）；活頁簿數字由 Excel 實際執行 VBA 取得，與 Python 複製版比對（docs/workbook_check.md）。 <strong>不以 AI 自稱「已通過」作為證據</strong>，以上皆有輸出檔可查。</li></ol>
+<h2>公開處理</h2>
+<ul><li>對話紀錄僅保留與專題相關內容的摘要（上表）；未包含帳號、學號或個人資料。</li><li>原始 Yahoo 資料不放進公開 repo（授權），以取得程式＋<code>data/manifest.json</code> 的雜湊值代替。</li></ul>
+</div>
+</body>
+</html>

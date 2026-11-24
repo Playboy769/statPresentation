@@ -1,0 +1,56 @@
+<!doctype html>
+<html lang="zh-Hant">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>資料清單與字典</title>
+<style>
+:root{--bg:#fff;--fg:#1a1a1a;--muted:#5c5c5c;--line:#e3e3e3;--soft:#f6f6f4;--accent:#c86400}
+@media (prefers-color-scheme:dark){:root{--bg:#141414;--fg:#e8e8e8;--muted:#a0a0a0;--line:#2e2e2e;--soft:#1d1d1d;--accent:#ff9a3c}}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--fg);font:16px/1.75 "Noto Sans TC","Microsoft JhengHei","PingFang TC",system-ui,sans-serif}
+.wrap{max-width:960px;margin:0 auto;padding:0 16px 48px}
+.top{border-bottom:1px solid var(--line);padding:14px 0;margin-bottom:8px;font-size:14px;color:var(--muted);display:flex;gap:12px;flex-wrap:wrap}
+a{color:var(--accent)}
+h1{font-size:28px;line-height:1.35;margin:24px 0 12px}
+h2{font-size:22px;margin:32px 0 10px;padding-bottom:4px;border-bottom:1px solid var(--line)}
+h3{font-size:18px;margin:24px 0 8px}
+h4,h5,h6{font-size:16px;margin:18px 0 6px}
+p{margin:0 0 12px}
+ul,ol{padding-left:24px;margin:0 0 12px}
+li{margin-bottom:4px}
+code{background:var(--soft);padding:1px 5px;border-radius:3px;font-size:14px;font-family:Consolas,"Courier New",monospace}
+pre{background:var(--soft);padding:12px 14px;border-radius:4px;overflow-x:auto}
+pre code{padding:0;background:none}
+blockquote{margin:0 0 12px;padding:8px 14px;border-left:4px solid var(--accent);background:var(--soft);color:var(--muted)}
+blockquote p:last-child{margin-bottom:0}
+.tbl{overflow-x:auto;margin:0 0 14px}
+table{border-collapse:collapse;font-size:15px;width:100%}
+th,td{border:1px solid var(--line);padding:6px 9px;text-align:left;vertical-align:top}
+th{background:var(--soft)}
+hr{border:0;border-top:1px solid var(--line);margin:24px 0}
+.meta{font-size:14px;color:var(--muted)}
+</style>
+</head>
+<body>
+<div class="wrap">
+<div class="top"><a href="../index.htm">&larr; 回專題首頁</a><span>原始檔：<a href="data_dictionary.md">docs/data_dictionary.md</a></span></div>
+<h1>資料清單與字典</h1>
+<p>主分析（SPY）用三份資料、兩個彼此獨立的提供者（Yahoo、FRED）；2330 流程驗證另用 TWSE（符合指引 05「至少 3 份、至少 2 個獨立來源」）。原始檔放 <code>data/raw/</code>（不進 git，見下方授權），下載時間、SHA-256 與列數自動寫入 <code>data/manifest.json</code>。原始檔唯讀，所有清理都在 <code>python/integrate.py</code> 以程式重跑。</p>
+<div class="tbl"><table><thead><tr><th>#</th><th>資料</th><th>提供者</th><th>取得方式</th><th>授權／可否重新散布</th><th>用途</th></tr></thead><tbody><tr><td>1</td><td>日收盤價 close、含息調整價 adjclose、配息事件（SPY）</td><td>Yahoo Finance</td><td>chart API <code>v8/finance/chart/&lt;sym&gt;?range=10y&amp;interval=1d&amp;events=div%7Csplit</code></td><td>個人使用；<strong>不重新散布</strong>，repo 只附取得程式</td><td>主分析；與 Ticker Volatility 活頁簿同源同欄位</td></tr><tr><td>2</td><td>S&amp;P 500 指數（SP500）</td><td>FRED（St. Louis Fed）</td><td><code>fredgraph.csv?id=SP500</code>（不設 User-Agent）</td><td>FRED 公開，引用需標示</td><td>與 #1 交叉驗證 SPY 價格與交易日</td></tr><tr><td>2'</td><td>台股官方日收盤價（僅 2330 測試）</td><td>臺灣證券交易所</td><td><code>exchangeReport/STOCK_DAY</code>，逐月查詢，每次間隔 3 秒</td><td>政府開放資料，可再利用（需標示來源）</td><td>與 #1 交叉驗證價格與交易日</td></tr><tr><td>3</td><td>VIXCLS（CBOE 波動率指數）</td><td>FRED（St. Louis Fed）</td><td><code>fredgraph.csv?id=VIXCLS</code></td><td>FRED 公開；VIX 為 CBOE 資料，引用需標示</td><td>外部「市場壓力」標記，檢驗極端日是否群聚</td></tr></tbody></table></div>
+<h2>蒐集與樣本</h2>
+<ul><li>母體：單一標的的所有交易日；分析單位：交易日。</li><li>期間：Yahoo 最近 10 年（2016-11-23 起，2,512 列）；SP500 與 SPY 重疊 2,510 日；VIX 全期。</li><li>分析樣本：最近 2,000 個報酬（2018-12-10..2026-11-23），另取最近 200、500 日做視窗比較。</li><li>納入：收盤價非空且 &gt; 0。排除：重複日期（保留後者並記錄）、TWSE 判定非交易日的 Yahoo 列。</li></ul>
+<h2>欄位</h2>
+<h3>data/processed/returns_&lt;ticker&gt;.csv（Python 產出、R 讀入）</h3>
+<div class="tbl"><table><thead><tr><th>欄位</th><th>型態</th><th>單位</th><th>說明</th></tr></thead><tbody><tr><td>date</td><td>日期</td><td>交易所當地日期</td><td>報酬所屬交易日</td></tr><tr><td>ret</td><td>浮點</td><td>比率（0.01 = 1%）</td><td><code>adjclose_t / adjclose_{t-1} − 1</code>（2330 舊版為 close）</td></tr><tr><td>vix_date</td><td>日期</td><td>美東日期</td><td>貼上的 VIX 觀測日，<strong>嚴格早於</strong> date</td></tr><tr><td>vixcls</td><td>浮點</td><td>指數點</td><td>前一個可得的 VIX 收盤</td></tr><tr><td>sample</td><td>文字</td><td>train / test</td><td>依時間 70/30 切分</td></tr></tbody></table></div>
+<h2>整合方式</h2>
+<ul><li><strong>SPY × S&amp;P 500 指數</strong>：鍵 = 交易日；只在兩邊都有資料的連續日期算報酬（一方休市不產生跨日報酬）；用 <strong>close</strong>（指數不含息），另以 Yahoo 配息加回算 <code>diff_div_adj</code>。2026-11-24：2,510 日、相關 0.9973、94.2%（加回股利 95.7%）差距 ≤ 0.1 pp（debug_log D-06）。</li></ul>
+<ul><li><strong>Yahoo × TWSE</strong>：鍵 = 交易日（兩者皆 Asia/Taipei）；預期一對一，任一側重複即停止（不平均、不默默去重）。 2026-11-23 下載：視窗 2024-12-02..2026-11-23，478 天配對成功，價格 100% 相同（容差 0.5%，最大差 0）。未配對：2026-10-23 只有 Yahoo（TWSE 無交易 → 判定為 Yahoo 陳舊列，刪除）；2025-08-01 只有 TWSE（Yahoo 收盤為空值）。</li><li><strong>報酬 × VIX</strong>：<code>merge_asof</code> 向後、<code>allow_exact_matches=False</code>；列數必須不變；最大間隔 4 天（週末＋假日）。</li></ul>
+<h2>品質紀錄（SPY，2026-11-24）</h2>
+<p>Yahoo 原始 2,512 列；close 與 adjclose 皆無缺值、非正值、重複日期；報酬 2,511 筆，取最近 2,000 筆分析；VIX 貼上 2,000→2,000 列、最大間隔 4 天。</p>
+<h2>品質紀錄（2330.TW，2026-11-23，流程驗證）</h2>
+<div class="tbl"><table><thead><tr><th>步驟</th><th>列數</th><th>原因</th></tr></thead><tbody><tr><td>Yahoo 原始</td><td>2432</td><td>—</td></tr><tr><td>收盤空值</td><td>−3</td><td>2017-02-18、2017-06-03（週六補班日）、2025-08-01</td></tr><tr><td>TWSE 判定非交易日</td><td>−1</td><td>2026-10-23</td></tr><tr><td>清理後價格</td><td>2428</td><td>—</td></tr><tr><td>報酬</td><td>2427</td><td>價格數 − 1</td></tr></tbody></table></div>
+<p>已知影響：2025-08-01 缺值讓 2025-08-04 的報酬跨兩個交易日；週六補班日的兩筆缺值同理。</p>
+</div>
+</body>
+</html>
