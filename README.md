@@ -14,7 +14,10 @@
 主要發現：最近 200、500、2,000 個交易日三視窗皆拒絕常態；超出 3σ 的天數是常態預期的 5–6 倍，
 樣本外（2,000 日切 70/30）常態低估 3σ 極端日約 3.7 倍，t 分布與歷史頻率未被拒絕；
 前一日 VIX 偏高時 2σ 極端日比例 17.8% vs 1.3%。詳見 [docs/results.md](docs/results.md)，
-書面報告 [report/Report.docx](report/Report.docx)（PDF 同版）。2330.TW 為早期流程驗證，保留作測試紀錄。
+書面報告 [report/Report.docx](report/Report.docx)（PDF 同版）。
+
+本專題為**雙主軸**：（一）產品——Ticker Volatility 活頁簿本身，原始碼在 [product/](product/README.md)，可用 `product/build.ps1` 從原始碼建出；
+（二）研究——檢驗活頁簿的 SD 區間能否當常態機率讀。超出 3σ 的極端日只佔約 1.5% 的交易日，卻貢獻 28–40% 的總波動（常態下約 2.9%）。2330.TW 為早期流程驗證，保留作測試紀錄。
 
 ## 成員與分工
 
@@ -56,7 +59,7 @@
 | 1 抓資料＋分析 | `python python/run_all.py` | `data/raw/`、`data/processed/`、`results/tables/`、`results/figures/` | 數十秒（台股代號另加 TWSE，每次請求間隔 3 秒） |
 | 1' 離線重跑 | `python python/run_all.py --offline` | 同上，用既有 raw | 數秒 |
 | 2 R 獨立檢核 | `Rscript r/verify.R SPY` | `results/tables/r_check_SPY.csv` | 數秒 |
-| 3 單元測試 | `python -m unittest discover -s python/tests -v` | 17 項 | 數秒 |
+| 3 單元測試 | `python -m unittest discover -s python/tests -v` | 19 項 | 數秒 |
 | 4 skill | `python skills/return-distribution-check/make_test_inputs.py` 後依 [SKILL.md](skills/return-distribution-check/SKILL.md) 執行 | `results/skill/` | 數秒 |
 | 5 活頁簿對帳（選用） | `powershell -STA -File python/run_workbook_check.ps1 -Book <活頁簿副本.xlsm> -Ticker SPY -Period 2000 -Out out.json` | JSON | ~30 秒 |
 
@@ -72,7 +75,7 @@ SPY: n=1400 sd=1.2836% skew=-0.52 exkurt=11.89 JB p=0
   window 2000: sd=1.2240% exkurt=13.29 JB p=0 SW p=4.5e-37 beyond k: 1:394/634.6 2:90/91.0 3:30/5.4
 ```
 
-驗收：`r/verify.R` 必須印出 `41 / 41 checks passed`（結束碼 0）；單元測試 `OK`。
+驗收：`r/verify.R` 必須印出 `44 / 44 checks passed`（結束碼 0）；單元測試 `OK`。
 容差：動差相對誤差 1e-9、t 擬合 df 5%（兩語言最佳化器不同）、次數必須完全相同。
 
 ## 隨機性

@@ -66,3 +66,11 @@
 
 - 依使用者規則（標楷體／Times New Roman 12 號黑字、全國中學小論文格式、留截圖位置、APA 7）以 docx-js 產生 `report/Report.docx`，
   數字逐一對 `summary_SPY.json` 核對，Word 轉 PDF 逐頁檢查版面。
+
+## V12　報告改為雙主軸、尾部波動佔比
+
+- **需求**：「docx 的主軸是 Ticker Volatility Excel 產品不是這項研究，為雙主軸」「英文改 Times New Roman」；方法段去人名、表格精簡、圖改中文且不用黑色長條。
+- **生成**：`analyze.window_stats()` 新增 `var_share`（極端日佔總波動）與 `cum_return_excl`；`r/verify.R` 新增三視窗 `k3_var_share` 比對；2 個新單元測試（T24–T25）；`product/` 收錄活頁簿原始碼與建置腳本；報告重寫為「產品＋研究」雙主軸。
+- **查核**：常態理論值 2.93% 由公式推導、模擬驗證；Word 轉 PDF 後以 pdffonts 確認英文為 Times New Roman、中文為標楷體（目錄頁原本被 Word 套成主題字型，已在轉檔腳本強制改回）。
+- **結果**：R 44/44、單元測試 19/19；正文 11 頁（第 5–15 頁）。
+

@@ -19,7 +19,7 @@
 | T12 | 資料洩漏 | 切分依時間，訓練期全在測試期之前 | `test_split_is_chronological` | 通過 |
 | T13 | 計算 | 活頁簿複製版：手算 3 筆報酬的 SD | `test_hand_series` | 通過 |
 | T14 | 計算 | 活頁簿樣本長度規則 max(520, PERIOD) | `test_sample_is_520_when_period_smaller` | 通過 |
-| T15 | 獨立實作 | R 重算動差、JB、Shapiro、Ljung-Box、t 擬合、超越次數、Wilson、二項檢定、滾動次數、三視窗峰態／W／次數 | `results/tables/r_check_SPY.csv` 41/41（2330 舊版 26/26） | 通過 |
+| T15 | 獨立實作 | R 重算動差、JB、Shapiro、Ljung-Box、t 擬合、超越次數、Wilson、二項檢定、滾動次數、三視窗峰態／W／次數／3σ 波動佔比 | `results/tables/r_check_SPY.csv` 44/44（2330 舊版 26/26） | 通過 |
 | T16 | 系統 | 活頁簿副本實際執行 VBA vs Python 複製版（SPY PERIOD 200/500/2000） | `docs/evidence/workbook_vs_python_SPY_20261124.json` | close 版失敗（D-07），改 adjclose 後完全一致 |
 | T17 | 資料 | Yahoo vs TWSE 收盤價（容差 0.5%） | 478 天 100% 相同；發現 1 筆非交易日（D-04） | 通過，並修正清理規則 |
 | T18 | 邊界 | skill：重複日期、少於 250 筆 → exit 2、不輸出統計 | `results/skill/run2a_*`、`run2b_*` | 通過 |
@@ -28,11 +28,13 @@
 | T21 | 資料 | 一方休市不得產生跨兩日報酬 | `test_holiday_on_one_side_does_not_create_two_day_return` | 通過 |
 | T22 | 計算 | `last_n` 取最後 n 筆、n 為 None 或超過長度時回傳全部 | `test_last_n` | 通過 |
 | T23 | 資料 | SPY × FRED S&P 500 指數報酬 | 2,510 日、相關 0.9973；除息日以股利解釋，1 筆未解釋（D-06） | 通過（附限制） |
+| T24 | 統計 | 40 萬筆模擬常態：3σ 外佔總波動 ≈ 理論值 2(3φ(3)+1−Φ(3)) = 2.93% | `test_normal_data_gives_theoretical_share` | 通過 |
+| T25 | 計算 | 99 個 0 加 1 個 1：極端日佔比等於手算 (x−μ)² 比例 | `TestTailVarianceShare.test_hand_example` | 通過 |
 
 ## 執行方式
 
 ```
-python -m unittest discover -s python/tests -v      # T01–T14、T20–T22（17 項）
+python -m unittest discover -s python/tests -v      # T01–T14、T20–T22、T24–T25（19 項）
 Rscript r/verify.R SPY                              # T15（需先跑 run_all.py）
 powershell -STA -File python/run_workbook_check.ps1 -Book <活頁簿副本> -Ticker SPY -Period 2000 -Out out.json   # T16（另跑 200、500）
 ```
