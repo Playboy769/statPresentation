@@ -14,3 +14,6 @@ __pycache__/
 renv/library/
 .env
 *.log
+
+# Course guideline PDF (instructor material, not ours to redistribute)
+115-1_StatSoft_FinalProject_Guidelines_*.pdf
