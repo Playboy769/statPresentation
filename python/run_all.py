@@ -15,6 +15,9 @@ from pathlib import Path
 import matplotlib
 matplotlib.use("Agg")
 import matplotlib.pyplot as plt
+# Chinese labels: Times New Roman for Latin text, DFKai-SB (標楷體, Windows) for CJK glyphs
+plt.rcParams["font.family"] = ["Times New Roman", "DFKai-SB"]
+plt.rcParams["axes.unicode_minus"] = False
 import numpy as np
 import pandas as pd
 from scipy import stats
@@ -65,14 +68,13 @@ def figures(name: str, ticker: str, train, test, tfit, exc, cross) -> list[str]:
 
     # 1 histogram vs normal and t (train)
     fig, ax = plt.subplots(figsize=(8, 4.5))
-    ax.hist(train, bins=80, density=True, color="#9ca3af", label=f"train returns (n={train.size})")
+    ax.hist(train, bins=80, density=True, color="#9ca3af", label=f"訓練期日報酬（n = {train.size}）")
     xs = np.linspace(train.min(), train.max(), 600)
-    ax.plot(xs, stats.norm.pdf(xs, mu, sd), color="#1d4ed8", lw=1.6, label="normal (mean, SD)")
+    ax.plot(xs, stats.norm.pdf(xs, mu, sd), color="#1d4ed8", lw=1.6, label="常態分布")
     ax.plot(xs, stats.t.pdf(xs, tfit["df"], tfit["loc"], tfit["scale"]), color="#c2410c", lw=1.6,
-            label=f"Student-t (df={tfit['df']:.1f})")
+            label=f"Student-t 分布（自由度 {tfit['df']:.1f}）")
     ax.set_yscale("log"); ax.set_ylim(bottom=0.05)
-    ax.set_xlabel("daily simple return"); ax.set_ylabel("density (log scale)")
-    ax.set_title(f"Fig.1 {ticker}: train-period return distribution (log density shows the tails)")
+    ax.set_xlabel("日報酬"); ax.set_ylabel("密度（對數刻度）")
     ax.legend(frameon=False, fontsize=8)
     p = FIG / f"fig1_hist_{name}.png"; fig.tight_layout(); fig.savefig(p, dpi=140); plt.close(fig); out.append(p)
 
@@ -83,35 +85,32 @@ def figures(name: str, ticker: str, train, test, tfit, exc, cross) -> list[str]:
     ax.scatter(q, z, s=4, color="#374151")
     lim = max(abs(z).max(), abs(q).max())
     ax.plot([-lim, lim], [-lim, lim], color="#1d4ed8", lw=1)
-    ax.set_xlabel("normal quantile"); ax.set_ylabel("standardised return (z)")
-    ax.set_title(f"Fig.2 {ticker}: normal QQ plot (train)")
+    ax.set_xlabel("常態分位數"); ax.set_ylabel("標準化報酬（z）")
     p = FIG / f"fig2_qq_{name}.png"; fig.tight_layout(); fig.savefig(p, dpi=140); plt.close(fig); out.append(p)
 
     # 3 out-of-sample exceedance: predicted vs observed with 95% CI
     fig, ax = plt.subplots(figsize=(8, 4.5))
     ks = [r["k"] for r in exc]; x = np.arange(len(ks)); w = 0.2
-    for j, (key, lab, col) in enumerate([("p_normal", "normal (workbook)", "#1d4ed8"),
-                                         ("p_t", "Student-t", "#c2410c"),
-                                         ("p_hist_train", "historical (train)", "#6b7280")]):
+    for j, (key, lab, col) in enumerate([("p_normal", "常態預測（活頁簿解讀）", "#9ca3af"),
+                                         ("p_t", "Student-t 預測", "#ea8a2e"),
+                                         ("p_hist_train", "歷史頻率預測", "#86c98a")]):
         ax.bar(x + (j - 1.5) * w, [r[key] for r in exc], w, label=lab, color=col)
     obs = np.array([r["p_observed"] for r in exc])
     err = np.array([[r["p_observed"] - r["ci95_low"] for r in exc], [r["ci95_high"] - r["p_observed"] for r in exc]])
-    ax.bar(x + 1.5 * w, obs, w, color="#111827", label="observed in test", yerr=err, capsize=3)
-    ax.set_yscale("log"); ax.set_xticks(x, [f"|r-mu| > {k} SD" for k in ks])
-    ax.set_ylabel("probability per day (log scale)")
-    ax.set_title(f"Fig.3 {ticker}: predicted vs observed extreme-day frequency (test n={exc[0]['test_n']})")
+    ax.bar(x + 1.5 * w, obs, w, color="#2563eb", label="測試期實際（95% 信賴區間）", yerr=err, capsize=3)
+    ax.set_yscale("log"); ax.set_xticks(x, [f"超出 {k} SD" for k in ks])
+    ax.set_ylabel("每日發生機率（對數刻度）")
     ax.legend(frameon=False, fontsize=8)
     p = FIG / f"fig3_exceed_{name}.png"; fig.tight_layout(); fig.savefig(p, dpi=140); plt.close(fig); out.append(p)
 
     # 4 cross-check figure
     if cross is not None and len(cross) and "r_idx" in cross:
         fig, ax = plt.subplots(figsize=(8, 3.4))
-        ax.plot(cross["date"], cross["diff"] * 100, color="#9ca3af", lw=0.7, label="SPY return - S&P 500 return")
+        ax.plot(cross["date"], cross["diff"] * 100, color="#9ca3af", lw=0.7, label="SPY 報酬 − S&P 500 指數報酬")
         ex = cross[cross["ex_div"]]
-        ax.scatter(ex["date"], ex["diff"] * 100, s=14, color="#c2410c", zorder=3, label="ex-dividend day")
+        ax.scatter(ex["date"], ex["diff"] * 100, s=14, color="#c2410c", zorder=3, label="除息日")
         ax.axhline(0, color="#111827", lw=0.6)
-        ax.set_ylabel("difference (percentage points)")
-        ax.set_title(f"Fig.4 {ticker} (Yahoo) vs S&P 500 index (FRED): daily return difference, {len(cross)} days")
+        ax.set_ylabel("差距（百分點）")
         ax.legend(frameon=False, fontsize=8)
         p = FIG / f"fig4_crosscheck_{name}.png"; fig.tight_layout(); fig.savefig(p, dpi=140); plt.close(fig); out.append(p)
     elif cross is not None and len(cross):
@@ -127,16 +126,15 @@ def fig_rolling(name, ticker, exc, roll) -> str:
     """Fig.5: same observed-vs-normal question, fixed train SD vs rolling SD."""
     fig, ax = plt.subplots(figsize=(8, 4.5))
     ks = [r["k"] for r in roll]; x = np.arange(len(ks)); w = 0.2
-    ax.bar(x - 1.5 * w, [r["p_normal"] for r in roll], w, color="#1d4ed8", label="normal prediction")
-    ax.bar(x - 0.5 * w, [r["p_t_unitvar"] for r in roll], w, color="#c2410c", label="Student-t prediction")
-    for j, (rows, lab, col) in enumerate([(exc, "observed, fixed train SD", "#9ca3af"),
-                                          (roll, f"observed, rolling {roll[0]['window']}-day SD", "#111827")]):
+    ax.bar(x - 1.5 * w, [r["p_normal"] for r in roll], w, color="#9ca3af", label="常態預測")
+    ax.bar(x - 0.5 * w, [r["p_t_unitvar"] for r in roll], w, color="#ea8a2e", label="Student-t 預測")
+    for j, (rows, lab, col) in enumerate([(exc, "實際（固定訓練期 SD）", "#93c5fd"),
+                                          (roll, f"實際（滾動 {roll[0]['window']} 日 SD）", "#2563eb")]):
         o = np.array([r["p_observed"] for r in rows])
         e = np.array([[r["p_observed"] - r["ci95_low"] for r in rows], [r["ci95_high"] - r["p_observed"] for r in rows]])
         ax.bar(x + (0.5 + j) * w, o, w, color=col, yerr=e, capsize=3, label=lab)
-    ax.set_yscale("log"); ax.set_xticks(x, [f"|z| > {k}" for k in ks])
-    ax.set_ylabel("probability per day (log scale)")
-    ax.set_title(f"Fig.5 {ticker}: does re-estimating SD on recent data fix the underestimate?")
+    ax.set_yscale("log"); ax.set_xticks(x, [f"超出 {k} SD" for k in ks])
+    ax.set_ylabel("每日發生機率（對數刻度）")
     ax.legend(frameon=False, fontsize=8)
     p = FIG / f"fig5_rolling_{name}.png"; fig.tight_layout(); fig.savefig(p, dpi=140); plt.close(fig)
     return p.relative_to(ROOT).as_posix()
@@ -146,17 +144,16 @@ def fig_windows(name, ticker, wins) -> str:
     """Fig.6: share of days beyond k SD in the latest 200/500/2000 days vs normal."""
     fig, ax = plt.subplots(figsize=(8, 4.5))
     ks = [e["k"] for e in wins[0]["exceedance"]]; x = np.arange(len(ks)); w = 0.8 / (len(wins) + 1)
-    ax.bar(x - 0.4 + w / 2, [e["p_normal"] for e in wins[0]["exceedance"]], w, color="#1d4ed8", label="normal")
-    shades = ["#d1d5db", "#6b7280", "#111827"]
+    ax.bar(x - 0.4 + w / 2, [e["p_normal"] for e in wins[0]["exceedance"]], w, color="#9ca3af", label="常態預期")
+    shades = ["#bfdbfe", "#60a5fa", "#2563eb"]
     for j, wv in enumerate(wins):
         ex = wv["exceedance"]
         o = np.array([e["p_observed"] for e in ex])
         err = np.array([[e["p_observed"] - e["ci95_low"] for e in ex], [e["ci95_high"] - e["p_observed"] for e in ex]])
         ax.bar(x - 0.4 + w * (j + 1.5), np.maximum(o, 1e-4), w, color=shades[j % 3], yerr=err, capsize=3,
-               label=f"latest {wv['n']} days")
-    ax.set_yscale("log"); ax.set_xticks(x, [f"|r-mu| > {k} SD" for k in ks])
-    ax.set_ylabel("share of days (log scale)")
-    ax.set_title(f"Fig.6 {ticker}: share of days beyond k SD, by window (in-sample, own mean/SD)")
+               label=f"最近 {wv['n']} 日")
+    ax.set_yscale("log"); ax.set_xticks(x, [f"超出 {k} SD" for k in ks])
+    ax.set_ylabel("天數比例（對數刻度）")
     ax.legend(frameon=False, fontsize=8)
     p = FIG / f"fig6_windows_{name}.png"; fig.tight_layout(); fig.savefig(p, dpi=140); plt.close(fig)
     return p.relative_to(ROOT).as_posix()

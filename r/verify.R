@@ -96,6 +96,11 @@ if (!is.null(py$windows) && length(py$windows)) {
     for (j in seq_len(nrow(ex))) {
       k <- ex$k[j]
       add(sprintf("win%d_k%d_hits", n, k), ex$hits[j], sum(abs(x - mean(x)) > k * sd(x)), 0)
+      # share of total variance from days beyond k SD (tail contribution to volatility)
+      if (k == 3 && !is.null(ex$var_share)) {
+        d2 <- (x - mean(x))^2; e <- abs(x - mean(x)) > k * sd(x)
+        add(sprintf("win%d_k3_var_share", n), ex$var_share[j], sum(d2[e]) / sum(d2), 1e-12)
+      }
     }
   }
 }

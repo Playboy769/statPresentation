@@ -163,11 +163,19 @@ def window_stats(r: np.ndarray, ks) -> dict:
         hits = int(np.sum(np.abs(r - mu) > k * sd))
         p0 = 2 * stats.norm.sf(k)
         lo, hi = wilson(hits, n)
+        dev2 = (r - mu) ** 2
+        ext = np.abs(r - mu) > k * sd
         rows.append({"k": k, "hits": hits, "expected_normal": float(n * p0), "p_observed": hits / n,
                      "p_normal": float(p0), "ci95_low": lo, "ci95_high": hi,
-                     "binom_p_vs_normal": float(stats.binomtest(hits, n, p0).pvalue)})
+                     "binom_p_vs_normal": float(stats.binomtest(hits, n, p0).pvalue),
+                     # share of the window's total variance (sum of squared deviations) that
+                     # comes from days beyond k SD, and the same share if returns were normal:
+                     # E[z^2; |z|>k] = 2 (k phi(k) + 1 - Phi(k))
+                     "var_share": float(dev2[ext].sum() / dev2.sum()),
+                     "var_share_normal": float(2 * (k * stats.norm.pdf(k) + stats.norm.sf(k))),
+                     "cum_return_excl": float(np.expm1(np.log1p(r[~ext]).sum()))})
     return {"n": int(n), "moments": moments(r), "shapiro": shapiro(r), "ljung_box_sq": ljung_box_sq(r),
-            "exceedance": rows}
+            "cum_return": float(np.expm1(np.log1p(r).sum())), "exceedance": rows}
 
 
 def oos_loglik(train: np.ndarray, test: np.ndarray, tfit: dict) -> dict:

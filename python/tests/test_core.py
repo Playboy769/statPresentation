@@ -74,6 +74,24 @@ class TestIntervals(unittest.TestCase):
         self.assertGreater(tfit["df"], 30)  # near-normal data -> large df
 
 
+class TestTailVarianceShare(unittest.TestCase):
+    def test_normal_data_gives_theoretical_share(self):
+        # For normal data the share of variance beyond 3 SD is 2(3*phi(3) + 1 - Phi(3)) ~ 2.93%
+        rng = np.random.default_rng(11)
+        w = A.window_stats(rng.normal(0, 0.01, 400_000), [3])
+        row = w["exceedance"][0]
+        self.assertAlmostEqual(row["var_share_normal"], 0.0293, places=4)
+        self.assertLess(abs(row["var_share"] - row["var_share_normal"]), 0.003)
+
+    def test_hand_example(self):
+        # one big outlier among small moves: its share of squared deviations is computed by hand
+        x = np.array([0.0] * 99 + [1.0])
+        row = A.window_stats(x, [3])["exceedance"][0]
+        d2 = (x - x.mean()) ** 2
+        self.assertEqual(row["hits"], 1)
+        self.assertAlmostEqual(row["var_share"], d2[-1] / d2.sum(), places=12)
+
+
 class TestLjungBox(unittest.TestCase):
     def test_iid_not_rejected_and_garch_like_rejected(self):
         rng = np.random.default_rng(7)
