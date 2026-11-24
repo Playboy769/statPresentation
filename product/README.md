@@ -33,4 +33,21 @@ powershell -STA -File product\build.ps1 -OutPath "C:\path\Ticker Volatility.xlsm
 | RETURN BANDS／BIGGEST DAYS | 報酬分組次數、最大漲跌日 |
 | STREAK LENGTH | 連漲／連跌的次數與延續機率 |
 
+## 抓取紀錄（Manifest）
+
+每次向 Yahoo 抓價格（含 PROXY CHECK 用的大盤 SPY／^TWII，抓取失敗也算），活頁簿都會在隱藏工作表 `Manifest` 新增一列，只保留最近 500 列。要查看時，在 Excel 的工作表分頁按右鍵 →「取消隱藏」。
+
+| 欄位 | 內容 |
+|---|---|
+| FETCHED (LOCAL) | 抓取時間（本機時間） |
+| TICKER | 實際抓的代號（台股數字代號會顯示補上的 .TW／.TWO） |
+| URL | Yahoo API 網址 |
+| STATUS | `OK`，或失敗原因（如 `HTTP 404 no prices`） |
+| ROWS | 取得的價格筆數 |
+| FIRST DATE／LAST DATE | 價格的起訖日 |
+| SHA256 | Yahoo 原始回應（UTF-8）的指紋；電腦缺 .NET 時留白 |
+| BYTES | 原始回應長度 |
+
+用途與研究端的 `data/manifest.json` 相同：事後可確認畫面是用哪一天、哪一段資料算的。Yahoo 回應含即時報價欄位，所以同一代號不同時間抓，SHA256 通常不同；要比對的是 ROWS 與起訖日。
+
 本專題的分析與活頁簿使用同一份 Yahoo 含息調整價格，並以 Excel 實際執行本活頁簿對帳（見 `docs/workbook_check.md`）。

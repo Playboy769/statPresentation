@@ -24,6 +24,8 @@ Private Const VT_SHEET      As String = "Ticker Volatility"
 Private Const DC            As Long = 60          ' first chart-data column
 Private Const MAXN          As Long = 2600        ' daily bars kept (~10y, Yahoo range=10y)
 Private Const NBIN          As Long = 41
+Private Const MANIFEST_SHEET As String = "Manifest"   ' hidden fetch log
+Private Const MANIFEST_MAX   As Long = 500
 
 Private Const VT_TXT        As Long = 14540253    ' RGB(221,221,221)
 Private Const VT_DIM        As Long = 9211020     ' RGB(140,140,140)
@@ -948,12 +950,13 @@ End Function
 Private Function FetchYahooSeries(ByVal Ticker As String, ByRef outDates() As Date, _
                                   ByRef outPrices() As Double) As Boolean
     Dim http As Object
-    Dim url As String, response As String
+    Dim url As String, response As String, status As String
     Dim tsStr As String, closeStr As String
     Dim tsArr() As String, closeArr() As String
-    Dim i As Long
+    Dim i As Long, validCount As Long
 
     url = "https://query1.finance.yahoo.com/v8/finance/chart/" & Ticker & "?range=10y&interval=1d"
+    status = "no response"
 
     On Error Resume Next
     Set http = CreateObject("WinHttp.WinHttpRequest.5.1")
@@ -963,14 +966,15 @@ Private Function FetchYahooSeries(ByVal Ticker As String, ByRef outDates() As Da
         .setRequestHeader "User-Agent", "Mozilla/5.0"
         .send
         response = .responseText
+        status = "HTTP " & .status
     End With
     On Error GoTo 0
-    If Len(response) = 0 Then Exit Function
+    If Len(response) = 0 Then GoTo Done
 
     Dim tsStart As Long, tsEnd As Long
     tsStart = InStr(response, """timestamp"":[") + 12
     tsEnd = InStr(tsStart, response, "]")
-    If tsStart <= 12 Or tsEnd <= tsStart Then Exit Function
+    If tsStart <= 12 Or tsEnd <= tsStart Then status = status & " no prices": GoTo Done
     tsStr = Mid(response, tsStart, tsEnd - tsStart)
     tsArr = Split(tsStr, ",")
 
@@ -978,20 +982,18 @@ Private Function FetchYahooSeries(ByVal Ticker As String, ByRef outDates() As Da
     closeStart = InStr(response, """adjclose"":[{""adjclose"":[") + 23
     If closeStart < 24 Then closeStart = InStr(response, """close"":[") + 8
     closeEnd = InStr(closeStart, response, "]")
-    If closeStart <= 20 Or closeEnd <= closeStart Then Exit Function
+    If closeStart <= 20 Or closeEnd <= closeStart Then status = status & " no prices": GoTo Done
     closeStr = Mid(response, closeStart, closeEnd - closeStart)
     closeArr = Split(closeStr, ",")
 
     Dim count As Long
     count = UBound(tsArr)
     If UBound(closeArr) < count Then count = UBound(closeArr)
-    If count < 1 Then Exit Function
+    If count < 1 Then status = status & " no prices": GoTo Done
 
     ReDim outDates(0 To count)
     ReDim outPrices(0 To count)
 
-    Dim validCount As Long
-    validCount = 0
     For i = 0 To count
         If IsNumeric(tsArr(i)) And IsNumeric(closeArr(i)) Then
             outDates(validCount) = (CDbl(tsArr(i)) / 86400) + 25569
@@ -1005,7 +1007,85 @@ Private Function FetchYahooSeries(ByVal Ticker As String, ByRef outDates() As Da
         ReDim Preserve outPrices(0 To validCount - 1)
         FetchYahooSeries = True
         gFetchName = YahooName(response)
+        status = "OK"
+    Else
+        status = status & " too few prices"
     End If
+
+Done:
+    If validCount > 1 Then
+        LogFetch Ticker, url, status, validCount, outDates(0), outDates(validCount - 1), response
+    Else
+        LogFetch Ticker, url, status, validCount, 0, 0, response
+    End If
+End Function
+
+'=============================================================================
+'  Fetch manifest: one row per Yahoo request on the hidden sheet "Manifest"
+'  (unhide it from Excel to read).  Newest row at the bottom; only the last
+'  MANIFEST_MAX rows are kept.  SHA256 is the fingerprint of the raw Yahoo
+'  response (UTF-8 bytes); it is left blank when Windows .NET is unavailable.
+'=============================================================================
+
+Private Sub LogFetch(ByVal sym As String, ByVal url As String, ByVal status As String, _
+                     ByVal nRows As Long, ByVal d0 As Date, ByVal d1 As Date, ByVal raw As String)
+    On Error GoTo Quiet
+    Dim ws As Worksheet, prev As Object, r As Long, extra As Long
+    Set prev = ActiveSheet
+    On Error Resume Next
+    Set ws = ThisWorkbook.Worksheets(MANIFEST_SHEET)
+    On Error GoTo Quiet
+    If ws Is Nothing Then
+        Set ws = ThisWorkbook.Worksheets.Add(After:=ThisWorkbook.Worksheets(ThisWorkbook.Worksheets.count))
+        ws.Name = MANIFEST_SHEET
+        ws.Range("A1:I1").Value = Array("FETCHED (LOCAL)", "TICKER", "URL", "STATUS", "ROWS", _
+                                         "FIRST DATE", "LAST DATE", "SHA256", "BYTES")
+        ws.Rows(1).Font.Bold = True
+        ws.Columns("A").NumberFormat = "yyyy-mm-dd hh:mm:ss"
+        ws.Columns("F:G").NumberFormat = "yyyy-mm-dd"
+        ws.Columns("H").NumberFormat = "@"
+        Dim w As Variant, k As Long
+        w = Array(20, 12, 72, 22, 8, 12, 12, 68, 10)
+        For k = 0 To 8: ws.Columns(k + 1).ColumnWidth = w(k): Next k
+        ws.Visible = xlSheetHidden
+        If Not prev Is Nothing Then prev.Activate
+    End If
+
+    r = ws.Cells(ws.Rows.count, 1).End(xlUp).Row + 1
+    ws.Cells(r, 1).Value = Now
+    ws.Cells(r, 2).Value = "'" & Replace(sym, "%5E", "^")
+    ws.Cells(r, 3).Value = url
+    ws.Cells(r, 4).Value = status
+    ws.Cells(r, 5).Value = nRows
+    If nRows > 1 Then
+        ws.Cells(r, 6).Value = Int(d0)
+        ws.Cells(r, 7).Value = Int(d1)
+    End If
+    If Len(raw) > 0 Then
+        ws.Cells(r, 8).Value = Sha256Hex(raw)
+        ws.Cells(r, 9).Value = Len(raw)
+    End If
+
+    extra = r - 1 - MANIFEST_MAX
+    If extra > 0 Then ws.Rows("2:" & (extra + 1)).Delete
+Quiet:
+End Sub
+
+' SHA-256 of the UTF-8 bytes of s, lowercase hex; "" if .NET is not available.
+Private Function Sha256Hex(ByVal s As String) As String
+    On Error GoTo Nope
+    Dim enc As Object, sha As Object, b() As Byte, h() As Byte, i As Long, out As String
+    Set enc = CreateObject("System.Text.UTF8Encoding")
+    Set sha = CreateObject("System.Security.Cryptography.SHA256Managed")
+    b = enc.GetBytes_4(s)
+    h = sha.ComputeHash_2(b)
+    For i = LBound(h) To UBound(h)
+        out = out & LCase$(Right$("0" & Hex$(h(i)), 2))
+    Next i
+    Sha256Hex = out
+    Exit Function
+Nope:
+    Sha256Hex = ""
 End Function
 
 '=============================================================================
