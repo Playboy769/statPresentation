@@ -14,7 +14,7 @@
 suppressPackageStartupMessages({ library(jsonlite); library(MASS) })
 
 args <- commandArgs(trailingOnly = TRUE)
-name <- if (length(args)) args[1] else "2330_TW"
+name <- if (length(args)) args[1] else "SPY"
 ret_file <- file.path("data", "processed", paste0("returns_", name, ".csv"))
 sum_file <- file.path("results", "tables", paste0("summary_", name, ".json"))
 if (!file.exists(ret_file)) stop("missing ", ret_file, " - run python/run_all.py first")
@@ -84,6 +84,21 @@ w <- cfg$rolling_window; all <- d$ret; nt <- length(tr)
 z <- sapply((nt + 1):length(all), function(i) { p <- all[(i - w):(i - 1)]; (all[i] - mean(p)) / sd(p) })
 ro <- py$exceedance_rolling
 for (i in seq_len(nrow(ro))) add(sprintf("roll_k%d_hits", ro$k[i]), ro$test_hits[i], sum(abs(z) > ro$k[i]), 0)
+
+# 7. latest-N windows (in-sample, own mean/SD): JB and hit counts
+if (!is.null(py$windows) && length(py$windows)) {
+  wins <- py$windows
+  for (i in seq_len(nrow(wins))) {
+    n <- wins$n[i]; x <- tail(d$ret, n); mx <- mom(x)
+    add(sprintf("win%d_excess_kurtosis", n), wins$moments$excess_kurtosis[i], mx$excess_kurtosis, 1e-9, rel = TRUE)
+    add(sprintf("win%d_shapiro_W", n), wins$shapiro$W[i], unname(shapiro.test(x)$statistic), 1e-4)
+    ex <- wins$exceedance[[i]]
+    for (j in seq_len(nrow(ex))) {
+      k <- ex$k[j]
+      add(sprintf("win%d_k%d_hits", n, k), ex$hits[j], sum(abs(x - mean(x)) > k * sd(x)), 0)
+    }
+  }
+}
 
 out <- do.call(rbind, rows)
 dir.create(file.path("results", "tables"), showWarnings = FALSE, recursive = TRUE)

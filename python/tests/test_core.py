@@ -121,6 +121,35 @@ class TestIntegrate(unittest.TestCase):
             I.time_split(r, 1.0)
 
 
+class TestIndexCrosscheck(unittest.TestCase):
+    def test_ex_dividend_gap_is_explained_by_dividend(self):
+        # ETF 100 -> 99 on an ex-div day with a 1.00 dividend; index flat.
+        # raw diff = -1%; dividend-adjusted diff = -1% + 1/100 = 0 (hand calc)
+        dates = pd.to_datetime(["2024-03-14", "2024-03-15", "2024-03-18"])
+        prices = pd.DataFrame({"date": dates, "close": [100.0, 99.0, 99.0]})
+        index = pd.DataFrame({"date": dates, "sp500": [5000.0, 5000.0, 5000.0]})
+        divs = pd.DataFrame({"date": pd.to_datetime(["2024-03-15"]), "dividend": [1.0]})
+        m, q = I.crosscheck_index(prices, index, "sp500", divs, 0.001)
+        row = m[m["date"] == "2024-03-15"].iloc[0]
+        self.assertAlmostEqual(row["diff"], -0.01, places=12)
+        self.assertAlmostEqual(row["diff_div_adj"], 0.0, places=12)
+        self.assertEqual(q["of_which_ex_dividend"], 1)
+
+    def test_holiday_on_one_side_does_not_create_two_day_return(self):
+        prices = pd.DataFrame({"date": pd.to_datetime(["2024-01-02", "2024-01-03", "2024-01-04"]),
+                               "close": [100.0, 110.0, 121.0]})
+        index = pd.DataFrame({"date": pd.to_datetime(["2024-01-02", "2024-01-04"]), "sp500": [10.0, 12.1]})
+        m, q = I.crosscheck_index(prices, index, "sp500", pd.DataFrame(columns=["date", "dividend"]).astype({"date": "datetime64[ns]"}), 0.001)
+        self.assertEqual(q["common_days"], 1)
+        self.assertAlmostEqual(m["diff"].iloc[0], 0.0, places=12)  # both +21% over the same two days
+
+    def test_last_n(self):
+        r = pd.DataFrame({"ret": np.arange(10.0)})
+        self.assertEqual(I.last_n(r, 3)["ret"].tolist(), [7.0, 8.0, 9.0])
+        self.assertEqual(len(I.last_n(r, None)), 10)
+        self.assertEqual(len(I.last_n(r, 50)), 10)
+
+
 class TestWorkbookReplica(unittest.TestCase):
     def test_hand_series(self):
         # prices 100,101,100,102 -> returns +1%, -0.990099%, +2%

@@ -51,12 +51,29 @@ def parse_yahoo(raw: bytes) -> pd.DataFrame:
     res = json.loads(raw)["chart"]["result"][0]
     tz = res["meta"].get("exchangeTimezoneName", "UTC")
     ts = pd.to_datetime(res["timestamp"], unit="s", utc=True).tz_convert(tz)
-    return pd.DataFrame({"date": ts.date, "close": res["indicators"]["quote"][0]["close"]})
+    df = pd.DataFrame({"date": ts.date, "close": res["indicators"]["quote"][0]["close"]})
+    # Ticker Volatility reads "adjclose" (dividend/split adjusted) when present -
+    # see VT/modVT.bas FetchYahooSeries - so keep both columns.
+    adj = res["indicators"].get("adjclose")
+    df["adjclose"] = adj[0]["adjclose"] if adj else df["close"]
+    return df
+
+
+def parse_yahoo_dividends(raw: bytes) -> pd.DataFrame:
+    """Cash dividends from the same Yahoo response (events=div). Used only to
+    explain ex-dividend gaps between SPY (price return) and the S&P 500 index."""
+    res = json.loads(raw)["chart"]["result"][0]
+    tz = res["meta"].get("exchangeTimezoneName", "UTC")
+    ev = res.get("events", {}).get("dividends", {}) or {}
+    rows = [(pd.Timestamp(v["date"], unit="s", tz="UTC").tz_convert(tz).date(), float(v["amount"])) for v in ev.values()]
+    df = pd.DataFrame(rows, columns=["date", "dividend"])
+    df["date"] = pd.to_datetime(df["date"])
+    return df.sort_values("date").reset_index(drop=True)
 
 
 def fetch_yahoo(ticker: str, rng: str = "10y") -> pd.DataFrame:
     sym = requests.utils.quote(ticker, safe="")
-    url = f"https://query1.finance.yahoo.com/v8/finance/chart/{sym}?range={rng}&interval=1d&events=splits"
+    url = f"https://query1.finance.yahoo.com/v8/finance/chart/{sym}?range={rng}&interval=1d&events=div%7Csplit"
     r = requests.get(url, headers={"User-Agent": YAHOO_UA}, timeout=20)
     r.raise_for_status()
     path = RAW / f"yahoo_{safe_name(ticker)}.json"

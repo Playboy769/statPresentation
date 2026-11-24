@@ -1,6 +1,8 @@
 """Re-implement the Ticker Volatility workbook's daily SD block in Python.
 
-Source of truth: VT/modVT.bas (DrawPage), daily frequency:
+Source of truth: VT/modVT.bas (DrawPage), daily frequency. Input prices must be
+Yahoo "adjclose" - FetchYahooSeries prefers it over "close" (found 2026-11-24,
+docs/debug_log.md D-07):
   sample   = last max(520, PERIOD) simple returns          (m)
   window   = last PERIOD returns                            (w)
   sdW      = sample SD (n-1) of the window, muW = window mean

@@ -75,6 +75,51 @@ def crosscheck_twse(yahoo: pd.DataFrame, twse: pd.DataFrame, tol: float) -> tupl
     return both, q
 
 
+def crosscheck_index(prices: pd.DataFrame, index: pd.DataFrame, col: str,
+                     divs: pd.DataFrame, tol: float = 0.001) -> tuple[pd.DataFrame, dict]:
+    """Compare daily returns of an ETF (Yahoo close) with its index (FRED level).
+
+    Returns are computed on consecutive COMMON dates only, so a holiday on one
+    side never produces a two-day return on the other. The ETF close is not
+    dividend-adjusted, so on ex-dividend days the ETF return should be lower by
+    about dividend / previous close: the check is done before and after adding
+    that back.
+    """
+    ix = index.dropna(subset=[col]).copy()
+    ix["date"] = pd.to_datetime(ix["date"])
+    if ix["date"].duplicated().any() or prices["date"].duplicated().any():
+        raise DataQualityError("duplicate dates before index join")
+    m = prices.merge(ix, on="date", how="inner").sort_values("date").reset_index(drop=True)
+    if len(m) > min(len(prices), len(ix)):
+        raise DataQualityError("index join produced more rows than either input")
+    m["r_etf"] = m["close"].pct_change()
+    m["r_idx"] = m[col].pct_change()
+    m["prev_close"] = m["close"].shift(1)
+    m = m.merge(divs, on="date", how="left")
+    m["dividend"] = m["dividend"].fillna(0.0)
+    m = m.dropna(subset=["r_etf", "r_idx"])
+    m["diff"] = m["r_etf"] - m["r_idx"]
+    m["diff_div_adj"] = m["diff"] + m["dividend"] / m["prev_close"]
+    m["ex_div"] = m["dividend"] > 0
+    big = m.loc[m["diff"].abs() > tol]
+    q = {
+        "window": f"{m['date'].min().date()}..{m['date'].max().date()}",
+        "common_days": int(len(m)),
+        "return_correlation": float(m["r_etf"].corr(m["r_idx"])),
+        "tolerance_abs_return": tol,
+        "share_within_tol_raw": float((m["diff"].abs() <= tol).mean()),
+        "share_within_tol_div_adjusted": float((m["diff_div_adj"].abs() <= tol).mean()),
+        "days_outside_tol_raw": int(len(big)),
+        "of_which_ex_dividend": int(big["ex_div"].sum()),
+        "ex_dividend_days_in_window": int(m["ex_div"].sum()),
+        "max_abs_diff_raw": float(m["diff"].abs().max()),
+        "max_abs_diff_div_adjusted": float(m["diff_div_adj"].abs().max()),
+        "sd_etf_return": float(m["r_etf"].std(ddof=1)),
+        "sd_index_return": float(m["r_idx"].std(ddof=1)),
+    }
+    return m, q
+
+
 def drop_non_trading(prices: pd.DataFrame, dates: list[str]) -> tuple[pd.DataFrame, int]:
     """Remove Yahoo bars on dates the official exchange did not trade.
 
@@ -108,6 +153,13 @@ def attach_vix(rets: pd.DataFrame, vix: pd.DataFrame, col: str = "vixcls") -> tu
     if q["rows_out"] != q["rows_in"]:
         raise DataQualityError("VIX attach changed row count")
     return out, q
+
+
+def last_n(rets: pd.DataFrame, n: int | None) -> pd.DataFrame:
+    """Keep the most recent n returns (the workbook's PERIOD idea). None = all."""
+    if n is None or n >= len(rets):
+        return rets.reset_index(drop=True)
+    return rets.iloc[-n:].reset_index(drop=True)
 
 
 def time_split(rets: pd.DataFrame, frac: float) -> tuple[pd.DataFrame, pd.DataFrame]:

@@ -150,6 +150,26 @@ def rolling_exceedance(r_all: np.ndarray, n_train: int, window: int, ks, t_df: f
     return rows
 
 
+def window_stats(r: np.ndarray, ks) -> dict:
+    """In-sample description of one window (latest N days): normality tests and
+    observed vs normal share beyond k SD, using the window's own mean and SD.
+    This is what a user of the workbook sees for PERIOD = N; it is descriptive,
+    not out-of-sample."""
+    r = np.asarray(r, float)
+    n = r.size
+    mu, sd = r.mean(), r.std(ddof=1)
+    rows = []
+    for k in ks:
+        hits = int(np.sum(np.abs(r - mu) > k * sd))
+        p0 = 2 * stats.norm.sf(k)
+        lo, hi = wilson(hits, n)
+        rows.append({"k": k, "hits": hits, "expected_normal": float(n * p0), "p_observed": hits / n,
+                     "p_normal": float(p0), "ci95_low": lo, "ci95_high": hi,
+                     "binom_p_vs_normal": float(stats.binomtest(hits, n, p0).pvalue)})
+    return {"n": int(n), "moments": moments(r), "shapiro": shapiro(r), "ljung_box_sq": ljung_box_sq(r),
+            "exceedance": rows}
+
+
 def oos_loglik(train: np.ndarray, test: np.ndarray, tfit: dict) -> dict:
     """Average out-of-sample log-likelihood per day (higher = better)."""
     mu, sd = float(np.mean(train)), float(np.std(train, ddof=1))

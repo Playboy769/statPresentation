@@ -2,9 +2,9 @@
   "fred_VIXCLS": {
     "file": "data/raw/fred_VIXCLS.csv",
     "url": "https://fred.stlouisfed.org/graph/fredgraph.csv?id=VIXCLS",
-    "downloaded_utc": "2026-11-23T11:59:28+00:00",
-    "sha256": "5fdb14015c8fee857f1aae7ea54d799fe8e2eebc1b4dcab047cc7ac70e3a78a0",
-    "rows": 9623
+    "downloaded_utc": "2026-11-24T04:36:54+00:00",
+    "sha256": "6723d7bcb16781b5b12245327306f37242b01227da1ffac095634004645d18d1",
+    "rows": 9624
   },
   "yahoo_2330.TW": {
     "file": "data/raw/yahoo_2330_TW.json",
@@ -19,5 +19,19 @@
     "downloaded_utc": "2026-11-23T12:00:48+00:00",
     "sha256": "9a3c35f9259f5bb4ae9e41e0f6d726a308568d5e0ff6dc129359cf17459cdb1c",
     "rows": 479
+  },
+  "yahoo_SPY": {
+    "file": "data/raw/yahoo_SPY.json",
+    "url": "https://query1.finance.yahoo.com/v8/finance/chart/SPY?range=10y&interval=1d&events=div%7Csplit",
+    "downloaded_utc": "2026-11-24T04:38:52+00:00",
+    "sha256": "03b82d764dd4ecb32f4cdbbac91cd698df6404911a63587e2fe2474b5da3fe22",
+    "rows": 2512
+  },
+  "fred_SP500": {
+    "file": "data/raw/fred_SP500.csv",
+    "url": "https://fred.stlouisfed.org/graph/fredgraph.csv?id=SP500",
+    "downloaded_utc": "2026-11-24T04:36:55+00:00",
+    "sha256": "0b7fbb7a0acd52b9cc2b06d7494f0ad648ab5b629e69b51ca53254bf76ad6b8e",
+    "rows": 2606
   }
 }

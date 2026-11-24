@@ -50,3 +50,19 @@
 ## V8　skill
 
 - `return-distribution-check`：正常資料 1 次、邊界資料 2 種（重複日期、太短），皆依規格停止（exit 2）。
+
+## V9　標的改 SPY、三視窗、FRED S&P 500 交叉驗證（2026-11-24）
+
+- **需求**：「全部都以 SPY 進行基準分析」「分別做 200、500、2000 trading day 分析」「第二來源用 FRED 的 S&P 500 指數」。
+- **生成**：`integrate.crosscheck_index()`、`last_n()`；`analyze.window_stats()`；`run_all.py` 三視窗與 fig6；`r/verify.R` 第 7 段；3 個新單元測試。
+- **查核**：AI 先查 VBA 確認日線上限 MAXN = 2600 根，2,000 日在上限內（使用者記得是 1000 天上限，那是舊版 RR4 的回看期）。
+- **結果**：R 41/41、單元測試 17/17。交叉驗證發現除息日差距（D-06）。
+
+## V10　對帳失敗 → 改用 adjclose
+
+- 活頁簿 SPY 對帳 ±1 SD 內差 1–5 天；重讀 VBA 發現讀 adjclose（D-07）。改 `price_field` 後三視窗完全一致，R、單元測試重跑仍全過。
+
+## V11　書面報告
+
+- 依使用者規則（標楷體／Times New Roman 12 號黑字、全國中學小論文格式、留截圖位置、APA 7）以 docx-js 產生 `report/Report.docx`，
+  數字逐一對 `summary_SPY.json` 核對，Word 轉 PDF 逐頁檢查版面。

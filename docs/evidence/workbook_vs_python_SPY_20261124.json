@@ -1,0 +1,88 @@
+{
+  "run_date": "2026-11-24",
+  "ticker": "SPY",
+  "freq": "D",
+  "price_field": "adjclose (what the workbook reads)",
+  "how": "copy of Portfolio/Ticker Volatility.xlsm opened headless via Excel COM (original untouched); B2/B3/E3 set, RunVT run, cells read back. Python replica on the same Yahoo download.",
+  "note": "First comparison used 'close' and differed by 1-5 days in the +/-1 SD inside share; cause: workbook reads adjclose (debug_log D-07). With adjclose all cells match exactly.",
+  "periods": {
+    "200": {
+      "workbook": {
+        "status": "",
+        "c8": "daily  .  last 200 sessions  .  2026-02-09 to 2026-11-23  .  SD 1.00%  .  7 of 200 past 2 SD  .  last +4.71%",
+        "m10": "+/-1.00%",
+        "m11": "+/-2.00%",
+        "m12": "+/-3.00%",
+        "p10": 0.775,
+        "p11": 0.9538461538461539,
+        "p12": 0.9846153846153847,
+        "last_price": 722.2899780273438
+      },
+      "python_replica": {
+        "sd_window": 0.010009146386907709,
+        "n_beyond_2sd": 7,
+        "inside": {
+          "1": 0.775,
+          "2": 0.9538461538461539,
+          "3": 0.9846153846153847
+        }
+      },
+      "match": {
+        "inside_exact": true,
+        "beyond_2sd": true
+      }
+    },
+    "500": {
+      "workbook": {
+        "status": "",
+        "c8": "daily  .  last 500 sessions  .  2024-11-25 to 2026-11-23  .  SD 1.10%  .  18 of 500 past 2 SD  .  last +4.71%",
+        "m10": "+/-1.10%",
+        "m11": "+/-2.21%",
+        "m12": "+/-3.31%",
+        "p10": 0.8173076923076923,
+        "p11": 0.9634615384615385,
+        "p12": 0.9865384615384616,
+        "last_price": 722.2899780273438
+      },
+      "python_replica": {
+        "sd_window": 0.01102705661909912,
+        "n_beyond_2sd": 18,
+        "inside": {
+          "1": 0.8173076923076923,
+          "2": 0.9634615384615385,
+          "3": 0.9865384615384616
+        }
+      },
+      "match": {
+        "inside_exact": true,
+        "beyond_2sd": true
+      }
+    },
+    "2000": {
+      "workbook": {
+        "status": "",
+        "c8": "daily  .  last 2000 sessions  .  2018-12-10 to 2026-11-23  .  SD 1.22%  .  90 of 2000 past 2 SD  .  last +4.71%",
+        "m10": "+/-1.22%",
+        "m11": "+/-2.45%",
+        "m12": "+/-3.67%",
+        "p10": 0.8035,
+        "p11": 0.9555,
+        "p12": 0.9855,
+        "last_price": 722.2899780273438
+      },
+      "python_replica": {
+        "sd_window": 0.01224041838418186,
+        "n_beyond_2sd": 90,
+        "inside": {
+          "1": 0.8035,
+          "2": 0.9555,
+          "3": 0.9855
+        }
+      },
+      "match": {
+        "inside_exact": true,
+        "beyond_2sd": true
+      }
+    }
+  }
+}
